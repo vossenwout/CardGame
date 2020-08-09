@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".GameScreenHost"></activity>
+        <activity android:name=".GameScreenJoined"></activity>
+        <activity android:name=".GameScreenHost" />
         <activity android:name=".CreateLobby" />
         <activity android:name=".JoinGame" />
         <activity android:name=".GameScreenActivity" />
