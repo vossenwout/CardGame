@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "16854879932",
+    "firebase_url": "https://cardgame-b55d7.firebaseio.com",
+    "project_id": "cardgame-b55d7",
+    "storage_bucket": "cardgame-b55d7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:16854879932:android:198920d9c4c3beb64c8ab9",
+        "android_client_info": {
+          "package_name": "com.example.cardgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "16854879932-eoirmedtoeo97a6rjijjfpfnnfiqltqa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQsxthD-on0nb_kmI4FDFC20yv5p7F3fk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "16854879932-eoirmedtoeo97a6rjijjfpfnnfiqltqa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
