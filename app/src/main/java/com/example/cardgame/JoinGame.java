@@ -88,7 +88,7 @@ public class JoinGame extends AppCompatActivity {
 
             }
         };
-        roomRef.addValueEventListener(roomValueListener1);
+        roomRef.addListenerForSingleValueEvent(roomValueListener1);
 
     }
 
