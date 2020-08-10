@@ -7,8 +7,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -47,6 +51,32 @@ public class GameScreenHost extends AppCompatActivity {
 
         //Player hand init
         this.player1hand = new ArrayList<Integer>();
+
+        //Spinner tests
+        ArrayList<String> planets_array = new ArrayList<String>();
+        planets_array.add("jupiter");
+        planets_array.add("venus");
+
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item,planets_array);
+        spinner.setAdapter(spinnerAdapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String itemValue = parent.getItemAtPosition(position).toString();
+                Toast.makeText(parent.getContext(), itemValue, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //////
+
 
         // Get the Intent that started this activity and extract the roomName of the room we created
         Intent intent = getIntent();
