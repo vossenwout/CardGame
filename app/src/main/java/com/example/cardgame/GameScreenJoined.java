@@ -4,9 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -15,6 +18,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 public class GameScreenJoined extends AppCompatActivity {
 
@@ -26,8 +31,9 @@ public class GameScreenJoined extends AppCompatActivity {
     private GameRoom gameroomLocal;
     private boolean playerAdded = false;
     private String gameroomLocalName;
+    private ArrayList<Integer> playerHand;
 
-    // TODO voeg toe dat je kaarten kan lezen etcc
+    // TODO verander dat de class werkt met de echte playerName ipv POOKIE
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +42,9 @@ public class GameScreenJoined extends AppCompatActivity {
 
         //database INIT
         database = FirebaseDatabase.getInstance();
+
+        //playerhand INIT
+        this.playerHand = new ArrayList<Integer>();
 
         // Get the Intent that started this activity and extract the roomName of the room we created
         Intent intent = getIntent();
@@ -73,6 +82,9 @@ public class GameScreenJoined extends AppCompatActivity {
                 if( !playerAdded){
                     addPlayer();
                     playerAdded = true;}
+                displayPlayedCards();
+                updatePlayerHand();
+
             }
 
             @Override
@@ -89,6 +101,107 @@ public class GameScreenJoined extends AppCompatActivity {
         System.out.println("hello");
         System.out.println(room.roomName);
         this.gameroomLocal = room;
+    }
+
+    /**
+     * Displays the top card of the middle of the table, (the play stack)
+     */
+
+    public void displayPlayedCards(){
+        int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() -1);
+        //ImageView iv_card1 = (ImageView)findViewById(R.id.iv_card1);
+        if (card != 99999){
+            ImageView playstack = (ImageView)findViewById(R.id.playstack);
+            assignCards(card,playstack );
+        }
+
+    }
+
+
+    /**
+     * Checks which new cards are added to the player's hand and updates the visuals acordingly
+     */
+
+    public void updatePlayerHand(){
+        ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get("pookie");
+        //newPlayerHand.remove(Integer.valueOf(99999));
+        for(int i=0; i < newPlayerHand.size();i++){
+            if(!this.playerHand.contains(newPlayerHand.get(i)))
+                if(newPlayerHand.get(i) != 99999)
+                    displayAddedCardInHand(newPlayerHand.get(i));
+        }
+        this.playerHand = newPlayerHand;
+    }
+
+    /**
+     * The drawn card is displayed in the hand of the player, this id of this view is the same
+     * as the id of the card
+     */
+
+    public void displayAddedCardInHand(int card){
+        LayoutInflater inflator = LayoutInflater.from(this);
+        LinearLayout gallery = findViewById(R.id.gallery);
+        View view2 = inflator.inflate(R.layout.card,gallery,false);
+        gallery.addView(view2);
+        // creates an unique id for each card
+        ImageView kaart= findViewById(R.id.kaart);
+        assignCards(card, kaart);
+        kaart.setId(card);
+        //cardid += 1;
+    }
+
+    /**
+     * Plays the selected card from the player's hand and moves it to the played stack
+     * THis is called when you click on a card
+     */
+
+    public void playCard(View view){
+        System.out.println(view.getId());
+        // Removes the card from the player hand display
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeView(view);
+        }
+        this.gameroomLocal.playerHands.get("pookie").remove(Integer.valueOf(view.getId()));
+        this.gameroomLocal.playedCards.add(view.getId());
+
+        displayPlayedCards();
+        updateGameRoom();
+    }
+
+
+    /**
+     * Rare workaround nodig met met this door het eerst aan een lokale variabele te binden
+     * GEFIXED NU
+     */
+
+    public void addPlayer(){
+        this.gameroomLocal.playerIDs.add("pookie");
+        ArrayList<Integer> player2hand = new ArrayList<Integer>();
+        player2hand.add(99999);
+        this.gameroomLocal.playerHands.put("pookie",player2hand);
+        updateGameRoom();
+    }
+
+    public void removePlayer(){
+        this.gameroomLocal.playerIDs.remove("pookie");
+        this.gameroomLocal.playerHands.remove("pookie");
+        updateGameRoom();
+    }
+
+    public void updateGameRoom(){
+        this.gameroomRef.setValue(this.gameroomLocal);
+    }
+
+    public void goBack(View view){
+
+        // we remove the user from the online users database
+        //FirebaseUser user = mFirebaseauth.getCurrentUser();
+        //DatabaseReference userRef = database.getReference().child("OnlineUsers").child(user.getUid());
+        //userRef.removeValue();
+        removePlayer();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 
     // assigns the corresponding image to the cardview of the card thats been drawn
@@ -309,30 +422,4 @@ public class GameScreenJoined extends AppCompatActivity {
                 cardView.setImageResource(R.drawable.kc);
         }
     }
-
-    /**
-     * Rare workaround nodig met met this door het eerst aan een lokale variabele te binden
-     * GEFIXED NU
-     */
-
-    public void addPlayer(){
-        this.gameroomLocal.playerIDs.add("pookie");
-        updateGameRoom();
-    }
-
-    public void updateGameRoom(){
-        this.gameroomRef.setValue(this.gameroomLocal);
-    }
-
-    public void goBack(View view){
-
-        // we remove the user from the online users database
-        //FirebaseUser user = mFirebaseauth.getCurrentUser();
-        //DatabaseReference userRef = database.getReference().child("OnlineUsers").child(user.getUid());
-        //userRef.removeValue();
-
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-    }
-
 }

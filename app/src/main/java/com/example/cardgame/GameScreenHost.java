@@ -91,6 +91,7 @@ public class GameScreenHost extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 GameRoom room = dataSnapshot.getValue(GameRoom.class);
                 changeRoom(room);
+                displayPlayedCards();
             }
 
             @Override
@@ -113,21 +114,23 @@ public class GameScreenHost extends AppCompatActivity {
      * Draws a card for every player in the game and updates it
      */
     public void drawCard(View view){
-        Collections.shuffle(deck);
-        //ArrayList<Integer> player1hand = new ArrayList<Integer>();
-        //ArrayList<Integer> player2hand = new ArrayList<Integer>();
-        int addedCard = deck.get(0);
-        this.player1hand.add(addedCard);
-        //player2hand.add(deck.get(1));
-        this.deck.remove(0);
-        //deck.remove(1);
-        //this.gameroomLocal.playerHands.put("player1",player1hand);
-        this.gameroomLocal.playerHands.get("player1").add(addedCard);
-        //this.gameroomLocal.playerHands.put("player2",player2hand);
-        //gameroomRef.setValue(this.gameroomLocal);
+        //Collections.shuffle(deck);
+        //int addedCard = deck.get(0);
+        //this.deck.remove(0);
+        //this.gameroomLocal.playerHands.get("player1").add(addedCard);
+        int addedCard;
+        int playerCount = this.gameroomLocal.playerIDs.size();
+        int addedCardForThisPlayer = deck.get(0);
+        for (int i = 0; i< playerCount;i++){
+            addedCard = deck.get(0);
+            this.deck.remove(0);
+            this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
+            if(this.gameroomLocal.playerIDs.get(i) == "player1")
+                addedCardForThisPlayer = addedCard;
+        }
+
         updateGameRoom();
-        displayAddedCardInHand(addedCard);
-        //displayCardsPlayerHand();
+        displayAddedCardInHand(addedCardForThisPlayer);
     }
 
     /**
@@ -145,7 +148,8 @@ public class GameScreenHost extends AppCompatActivity {
     }
 
     /**
-     * The drawn card is displayed in the hand of the player
+     * The drawn card is displayed in the hand of the player, this id of this view is the same
+     * as the id of the card
      */
 
     public void displayAddedCardInHand(int card){
