@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,6 +36,7 @@ public class GameScreenHost extends AppCompatActivity {
     private GameRoom gameroomLocal;
     private ArrayList<Integer> deck;
     private ArrayList<Integer> player1hand;
+    private String displayName;
     // ID's to assign to individual cards to control them
     private int cardid = 9990;
 
@@ -45,6 +48,10 @@ public class GameScreenHost extends AppCompatActivity {
 
         // DATABASE INIT
         database = FirebaseDatabase.getInstance();
+
+        // User
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        this.displayName = user.getDisplayName();
 
         //DECK of cards INIT
         initDeck();
@@ -87,11 +94,11 @@ public class GameScreenHost extends AppCompatActivity {
         HashMap<String, ArrayList<Integer>> playerHands = new HashMap<String, ArrayList<Integer>>();
         ArrayList<Integer> player1hand = new ArrayList<Integer>();
         this.player1hand.add(99999);
-        playerHands.put("player1",this.player1hand);
+        playerHands.put(displayName,this.player1hand);
 
         // list of current players
         ArrayList<String> playerIDs = new ArrayList<String>();
-        playerIDs.add("player1");
+        playerIDs.add(displayName);
         // cards that are played by the players
         ArrayList<Integer> playedCards = new ArrayList<Integer>();
         playedCards.add(99999);
@@ -155,7 +162,7 @@ public class GameScreenHost extends AppCompatActivity {
             addedCard = deck.get(0);
             this.deck.remove(0);
             this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
-            if(this.gameroomLocal.playerIDs.get(i) == "player1")
+            if(this.gameroomLocal.playerIDs.get(i) == this.displayName)
                 addedCardForThisPlayer = addedCard;
         }
 
@@ -529,7 +536,7 @@ public class GameScreenHost extends AppCompatActivity {
         if (parent != null) {
             parent.removeView(view);
         }
-        this.gameroomLocal.playerHands.get("player1").remove(Integer.valueOf(view.getId()));
+        this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(view.getId()));
         this.gameroomLocal.playedCards.add(view.getId());
 
         displayPlayedCards();

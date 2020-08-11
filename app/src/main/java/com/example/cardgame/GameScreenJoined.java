@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,6 +33,7 @@ public class GameScreenJoined extends AppCompatActivity {
     private boolean playerAdded = false;
     private String gameroomLocalName;
     private ArrayList<Integer> playerHand;
+    private String displayName;
 
     // TODO verander dat de class werkt met de echte playerName ipv POOKIE
 
@@ -45,6 +47,10 @@ public class GameScreenJoined extends AppCompatActivity {
 
         //playerhand INIT
         this.playerHand = new ArrayList<Integer>();
+
+        // User
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        this.displayName = user.getDisplayName();
 
         // Get the Intent that started this activity and extract the roomName of the room we created
         Intent intent = getIntent();
@@ -123,7 +129,7 @@ public class GameScreenJoined extends AppCompatActivity {
      */
 
     public void updatePlayerHand(){
-        ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get("pookie");
+        ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
         //newPlayerHand.remove(Integer.valueOf(99999));
         for(int i=0; i < newPlayerHand.size();i++){
             if(!this.playerHand.contains(newPlayerHand.get(i)))
@@ -162,7 +168,7 @@ public class GameScreenJoined extends AppCompatActivity {
         if (parent != null) {
             parent.removeView(view);
         }
-        this.gameroomLocal.playerHands.get("pookie").remove(Integer.valueOf(view.getId()));
+        this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(view.getId()));
         this.gameroomLocal.playedCards.add(view.getId());
 
         displayPlayedCards();
@@ -176,16 +182,16 @@ public class GameScreenJoined extends AppCompatActivity {
      */
 
     public void addPlayer(){
-        this.gameroomLocal.playerIDs.add("pookie");
+        this.gameroomLocal.playerIDs.add(this.displayName);
         ArrayList<Integer> player2hand = new ArrayList<Integer>();
         player2hand.add(99999);
-        this.gameroomLocal.playerHands.put("pookie",player2hand);
+        this.gameroomLocal.playerHands.put(this.displayName,player2hand);
         updateGameRoom();
     }
 
     public void removePlayer(){
-        this.gameroomLocal.playerIDs.remove("pookie");
-        this.gameroomLocal.playerHands.remove("pookie");
+        this.gameroomLocal.playerIDs.remove(this.displayName);
+        this.gameroomLocal.playerHands.remove(this.displayName);
         updateGameRoom();
     }
 
