@@ -646,14 +646,63 @@ public class GameScreenHost extends AppCompatActivity {
      */
 
     public void displayPlayedCards(){
-        int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() -1);
-        //ImageView iv_card1 = (ImageView)findViewById(R.id.iv_card1);
-        ImageView playstack = (ImageView)findViewById(R.id.playstack);
-        assignCards(card,playstack );
+        int totalAmountOfPlayedCards= this.gameroomLocal.playedCards.size();
+        if(totalAmountOfPlayedCards <= 1){
+            ImageView playstack = (ImageView)findViewById(R.id.playstack);
+            playstack.setImageResource(R.drawable.gray_back);
+        }
+        else {
+            int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+            ImageView playstack = (ImageView) findViewById(R.id.playstack);
+            assignCards(card, playstack);
+        }
     }
 
     public void updateGameRoom(){
         this.gameroomRef.setValue(this.gameroomLocal);
+    }
+
+    public void resetGame(View view){
+        // We reset the deck
+        initDeck();
+        // We remove all the cards from the hands of the players
+        int playerCount = this.gameroomLocal.playerIDs.size();
+        int removedCardForThisPlayer;
+        for (int i = 0; i < playerCount; i++) {
+            // cards that are played by the players
+            ArrayList<Integer> playedCards = new ArrayList<Integer>();
+            playedCards.add(99999);
+            this.gameroomLocal.playedCards = playedCards;
+            int totalCardsForThatPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size();
+            if (totalCardsForThatPlayer > 0) {
+                for (int j = 0; j < totalCardsForThatPlayer; j++) {
+                    // we iterate trough all the cards of the player and remove these
+                    removedCardForThisPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).get(this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size()-1);
+                    if (removedCardForThisPlayer != 99999) {
+                        this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).remove(this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size()-1);
+                        if (this.gameroomLocal.playerIDs.get(i).equals(this.displayName)) {
+                            removeCardFromHand(removedCardForThisPlayer);
+                        }
+                    }
+                }
+            }
+
+        }
+        ImageView playstack = (ImageView)findViewById(R.id.playstack);
+        playstack.setImageResource(R.drawable.gray_back);
+        updateGameRoom();
+    }
+
+
+    public void takeFromStack(View view){
+        int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+        if(totalAmountOfPlayedCards > 1) {
+            int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
+            this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards-1);
+            displayAddedCardInHand(topcard);
+            displayPlayedCards();
+            updateGameRoom();
+        }
     }
 
 }
