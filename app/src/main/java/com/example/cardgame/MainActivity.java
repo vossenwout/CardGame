@@ -131,36 +131,7 @@ public class MainActivity extends AppCompatActivity  {
         startActivity(intent);
     }
 
-    /**
-     * Method to create a lobby and start online game
-     */
 
-    public void onlineGame(View view){
-        //Generate roomName by looking in folder containing all group names
-
-        DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
-        totalRoomsReader(totalRoomsRef,"roomname1");
-
-        // the name of this gameRoom
-        String roomName = "roomname";
-        // "playerName" -> cards in current hand
-        HashMap<String, ArrayList<Integer>> playerHands = new HashMap<String, ArrayList<Integer>>();
-        // list of current players
-        ArrayList<String> playerIDs = new ArrayList<String>();
-        playerIDs.add("player1");
-        // cards that are played by the players
-        ArrayList<Integer> playedCards = new ArrayList<Integer>();
-        // cards that are still in the deck
-        ArrayList<Integer> deck = new ArrayList<Integer>();
-        GameRoom gameroom = new GameRoom(roomName,playerHands,playerIDs,playedCards,deck);
-
-        DatabaseReference roomRef = database.getReference().child("GameRooms").child("room1");
-        gameroomRef = roomRef;
-        roomRef.setValue(gameroom);
-
-        attachGameRoomValueListener(roomRef);
-
-    }
 
     /**
      * Attaches a listener to the room that is located on the given roomRef

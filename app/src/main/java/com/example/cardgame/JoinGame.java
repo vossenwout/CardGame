@@ -44,12 +44,15 @@ public class JoinGame extends AppCompatActivity {
     public void joinGameLobby(View view){
         EditText editText = (EditText) findViewById(R.id.editTextLobbyName);
         String roomname = editText.getText().toString();
-        //gameroomRef = database.getReference().child("GameRooms").child(message);
+
+        EditText passwordtext = (EditText) findViewById(R.id.passwordText);
+        String password = passwordtext.getText().toString();
+
         DatabaseReference roomRef = database.getReference().child("GameRooms").child(roomname);
         this.gameroomRefJoinGame = roomRef;
 
         // we attach a valueListener to the gameRoom we write in the edit text
-        doesRoomExist(this.gameroomRefJoinGame, roomname);
+        doesRoomExist(this.gameroomRefJoinGame, roomname,password);
 
 
         //System.out.println(gameroomLocal.roomName);
@@ -63,22 +66,29 @@ public class JoinGame extends AppCompatActivity {
      * wordt
      */
 
-    public void doesRoomExist(DatabaseReference roomRef, final String roomname){
+    public void doesRoomExist(DatabaseReference roomRef, final String roomname, final String password){
         ValueEventListener roomValueListener1 = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
-                System.out.println("been heere");
                 GameRoom room = dataSnapshot.getValue(GameRoom.class);
                 // The room exists and we can go to the GameScreenJoined activity
                 if(setRoomExist(room)){
-                    TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
-                    launchGameScreenJoined(roomname);
-
+                    if(isPassWordCorrect(room,password)) {
+                        launchGameScreenJoined(roomname);
+                    }
+                    else{
+                        TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
+                        lobbyFoundText.setVisibility(View.INVISIBLE);
+                        TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
+                        passwordWrongText.setVisibility(View.VISIBLE);
+                    }
                 }
                 else{
                     TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
-                    lobbyFoundText.setText("Lobby Not Found");
+                    lobbyFoundText.setVisibility(View.VISIBLE);
+                    TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
+                    passwordWrongText.setVisibility(View.INVISIBLE);
                 }
 
             }
@@ -102,6 +112,15 @@ public class JoinGame extends AppCompatActivity {
             return true;
         }
 
+    }
+
+    public boolean isPassWordCorrect(GameRoom room, String password){
+        if(room.password.equals(password)){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
 

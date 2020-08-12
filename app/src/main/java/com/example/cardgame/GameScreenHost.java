@@ -33,6 +33,7 @@ public class GameScreenHost extends AppCompatActivity {
     private FirebaseDatabase database;
     private DatabaseReference gameroomRef;
     private String gameroomLocalName;
+    private String roomPassword;
     private GameRoom gameroomLocal;
     private ArrayList<Integer> deck;
     private ArrayList<Integer> player1hand;
@@ -46,7 +47,6 @@ public class GameScreenHost extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_screen_host);
-
 
         // DATABASE INIT
         database = FirebaseDatabase.getInstance();
@@ -64,18 +64,9 @@ public class GameScreenHost extends AppCompatActivity {
         //Player hand init
         this.player1hand = new ArrayList<Integer>();
 
-        //Spinner tests
-        /**
-        ArrayList<String> planets_array = new ArrayList<String>();
-        planets_array.add("jupiter");
-        planets_array.add("venus");
-        */
+        //spinner with the playerID's
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        /**
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item,planets_array);
-        spinner.setAdapter(spinnerAdapter);
-        */
+
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
 
             @Override
@@ -90,13 +81,13 @@ public class GameScreenHost extends AppCompatActivity {
             }
         });
 
-        //////
-
-
         // Get the Intent that started this activity and extract the roomName of the room we created
         Intent intent = getIntent();
         String roomName = intent.getStringExtra(CreateLobby.EXTRA_MESSAGE);
         gameroomLocalName = roomName;
+
+        // Set the password for people to join the room
+        this.roomPassword = intent.getStringExtra(CreateLobby.PASSWORD);
 
         // "playerName" -> cards in current hand
         HashMap<String, ArrayList<Integer>> playerHands = new HashMap<String, ArrayList<Integer>>();
@@ -113,7 +104,7 @@ public class GameScreenHost extends AppCompatActivity {
 
         // cards that are still in the deck
         ArrayList<Integer> deck = new ArrayList<Integer>();
-        GameRoom gameroom = new GameRoom(roomName,playerHands,playerIDs,playedCards,deck);
+        GameRoom gameroom = new GameRoom(roomName,playerHands,playerIDs,playedCards,deck,this.roomPassword);
 
         DatabaseReference roomRef = database.getReference().child("GameRooms").child(roomName);
         this.gameroomRef = roomRef;
@@ -662,15 +653,16 @@ public class GameScreenHost extends AppCompatActivity {
      */
 
     public void displayPlayedCards(){
-        int totalAmountOfPlayedCards= this.gameroomLocal.playedCards.size();
-        if(totalAmountOfPlayedCards <= 1){
-            ImageView playstack = (ImageView)findViewById(R.id.playstack);
-            playstack.setImageResource(R.drawable.gray_back);
-        }
-        else {
-            int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
-            ImageView playstack = (ImageView) findViewById(R.id.playstack);
-            assignCards(card, playstack);
+        if(this.gameroomLocal.playedCards != null) {
+            int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+            if (totalAmountOfPlayedCards <= 1) {
+                ImageView playstack = (ImageView) findViewById(R.id.playstack);
+                playstack.setImageResource(R.drawable.gray_back);
+            } else {
+                int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+                ImageView playstack = (ImageView) findViewById(R.id.playstack);
+                assignCards(card, playstack);
+            }
         }
     }
 

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -16,7 +17,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class CreateLobby extends AppCompatActivity {
 
@@ -32,6 +32,7 @@ public class CreateLobby extends AppCompatActivity {
 
     // to send extra message
     public static final String EXTRA_MESSAGE = "com.example.cardgame.MESSAGE";
+    public static final String PASSWORD = "com.example.cardgame.PASSWORD";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,57 +57,7 @@ public class CreateLobby extends AppCompatActivity {
 
         DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
         addLobby(totalRoomsRef,roomName);
-
-        /**
-        // the name of this gameRoom
-        //String roomName = message;
-        // "playerName" -> cards in current hand
-        HashMap<String, ArrayList<Integer>> playerHands = new HashMap<String, ArrayList<Integer>>();
-        // list of current players
-        ArrayList<String> playerIDs = new ArrayList<String>();
-        playerIDs.add("player1");
-        // cards that are played by the players
-        ArrayList<Integer> playedCards = new ArrayList<Integer>();
-        // cards that are still in the deck
-        ArrayList<Integer> deck = new ArrayList<Integer>();
-        GameRoom gameroom = new GameRoom(roomName,playerHands,playerIDs,playedCards,deck);
-
-        DatabaseReference roomRef = database.getReference().child("GameRooms").child(roomName);
-        gameroomRef = roomRef;
-        roomRef.setValue(gameroom);
-        */
-        //attachGameRoomValueListener(roomRef);
-
-
-        //Intent intent = new Intent(this, GameScreenHost.class);
-        //intent.putExtra(EXTRA_MESSAGE, roomName);
-        //startActivity(intent);
-
     }
-
-    /**
-     * Fetches the last state of the gameRoom and sets it to gameRoomLocal
-     * @param roomRef
-     */
-
-    public void attachGameRoomValueListener(DatabaseReference roomRef){
-        ValueEventListener roomValueListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                GameRoom room = dataSnapshot.getValue(GameRoom.class);
-                changeRoom(room);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-        roomRef.addValueEventListener(roomValueListener);
-    }
-
-
-
 
     /**
      * Reader to read the set of all the rooms currently used and also create the room
@@ -127,10 +78,20 @@ public class CreateLobby extends AppCompatActivity {
                     } else {
                         addRoomnamesSet(roomNames);
                     }
-                    String uniqueRoomName = addUniqueRoomNameToRoomsSet(roomname, totalRoomsRef);
-                    hostingRoomActive = true;
-                    // launch other activity
-                    launchGameScreenHost(uniqueRoomName);
+                    Boolean isUniqueRoomName = checkOfRoomnameIsUnique(roomname, totalRoomsRef);
+                    if(isUniqueRoomName){
+                        hostingRoomActive = true;
+                        // launch other activity
+                        launchGameScreenHost(roomname);
+                    }
+                    else{
+                        // find the chosen password
+                        TextView lobbyFreeText = (TextView) findViewById(R.id.lobbyfree);
+                        // chosen name for this room
+                        String lobbyalreadytaken = "lobbyname already taken";
+                        lobbyFreeText.setText(lobbyalreadytaken);
+                        lobbyFreeText.setVisibility(View.VISIBLE);
+                    }
 
                 }
             }
@@ -153,22 +114,37 @@ public class CreateLobby extends AppCompatActivity {
         this.roomNames = roomNames;
     }
 
-    public String addUniqueRoomNameToRoomsSet(String roomName, DatabaseReference roomsSetRef){
+    /**
+     * Checks if the given roomName is uniaue. If it is unique (no other room with same name)
+     * Then it is added to the list with all the roomnames. And true is returned
+     */
+
+    public Boolean checkOfRoomnameIsUnique(String roomName, DatabaseReference roomsSetRef){
         if( this.roomNames.contains(roomName)){
-            this.roomNames.add(roomName + "1");
-            roomsSetRef.setValue(this.roomNames);
-            return (roomName + "1");
+            return false;
         }
         else{
             this.roomNames.add(roomName);
             roomsSetRef.setValue(this.roomNames);
-            return roomName;
+            return true;
         }
     }
+
+    /**
+     * We pass the roomname and the chosen password as an intent extra to the launchgame
+     */
 
     public void launchGameScreenHost(String roomName){
         Intent intent = new Intent(this, GameScreenHost.class);
         intent.putExtra(EXTRA_MESSAGE, roomName);
+
+        // find the chosen password
+        EditText editText = (EditText) findViewById(R.id.editTextPassword);
+        // chosen name for this room
+        String password = editText.getText().toString();
+        intent.putExtra(PASSWORD,password);
+
+
         startActivity(intent);
     }
 

@@ -15,6 +15,8 @@ public class GameRoom {
     public ArrayList<Integer> playedCards;
     // cards that are still in the deck
     public ArrayList<Integer> deck;
+    // password of the gameRoom
+    public String password;
 
 
 
@@ -25,12 +27,13 @@ public class GameRoom {
     }
 
     public GameRoom(String roomName, HashMap<String, ArrayList<Integer>> playerHands, ArrayList<String> playerIDs,
-                    ArrayList<Integer> playedCards, ArrayList<Integer> deck ) {
+                    ArrayList<Integer> playedCards, ArrayList<Integer> deck, String password ) {
         this.roomName = roomName;
         this.playerHands = playerHands;
         this.playerIDs = playerIDs;
         this.playedCards = playedCards;
         this.deck = deck;
+        this.password = password;
     }
 
 
