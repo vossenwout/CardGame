@@ -83,6 +83,7 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="52dp"
         android:layout_marginRight="52dp"
+        android:onClick="takeCardBack"
         android:text="TakeBack Last"
         app:layout_constraintEnd_toStartOf="@+id/spinner"
         app:layout_constraintHorizontal_bias="1.0"

@@ -130,12 +130,19 @@ public class GameScreenJoined extends AppCompatActivity {
 
     public void updatePlayerHand(){
         ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
-        //newPlayerHand.remove(Integer.valueOf(99999));
+        // Add new cards to the player's hand
         for(int i=0; i < newPlayerHand.size();i++){
             if(!this.playerHand.contains(newPlayerHand.get(i)))
                 if(newPlayerHand.get(i) != 99999)
                     displayAddedCardInHand(newPlayerHand.get(i));
         }
+        // Remove removed cards from the player's jamd
+        for(int i=0; i < this.playerHand.size();i++){
+            if(!newPlayerHand.contains(this.playerHand.get(i)))
+                if(this.playerHand.get(i) != 99999)
+                    removeCardFromHand(this.playerHand.get(i));
+        }
+
         this.playerHand = newPlayerHand;
     }
 
@@ -173,6 +180,18 @@ public class GameScreenJoined extends AppCompatActivity {
 
         displayPlayedCards();
         updateGameRoom();
+    }
+
+    /**
+     * Removes the card with the given cardId from the playersHannd
+     */
+
+    public void removeCardFromHand(int cardid){
+        View view = (View) findViewById(cardid);
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeView(view);
+        }
     }
 
 

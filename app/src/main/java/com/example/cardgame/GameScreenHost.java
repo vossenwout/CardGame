@@ -37,6 +37,8 @@ public class GameScreenHost extends AppCompatActivity {
     private ArrayList<Integer> deck;
     private ArrayList<Integer> player1hand;
     private String displayName;
+    // players in previous round
+    private ArrayList<String> previousPlayers;
     // ID's to assign to individual cards to control them
     private int cardid = 9990;
 
@@ -56,18 +58,24 @@ public class GameScreenHost extends AppCompatActivity {
         //DECK of cards INIT
         initDeck();
 
+        //previousPlayers
+        previousPlayers = new ArrayList<String>();
+
         //Player hand init
         this.player1hand = new ArrayList<Integer>();
 
         //Spinner tests
+        /**
         ArrayList<String> planets_array = new ArrayList<String>();
         planets_array.add("jupiter");
         planets_array.add("venus");
-
+        */
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        /**
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_dropdown_item,planets_array);
         spinner.setAdapter(spinnerAdapter);
+        */
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
 
             @Override
@@ -129,6 +137,7 @@ public class GameScreenHost extends AppCompatActivity {
                 GameRoom room = dataSnapshot.getValue(GameRoom.class);
                 changeRoom(room);
                 displayPlayedCards();
+                updateSpinnerWithPlayers();
             }
 
             @Override
@@ -155,19 +164,74 @@ public class GameScreenHost extends AppCompatActivity {
         //int addedCard = deck.get(0);
         //this.deck.remove(0);
         //this.gameroomLocal.playerHands.get("player1").add(addedCard);
-        int addedCard;
-        int playerCount = this.gameroomLocal.playerIDs.size();
-        int addedCardForThisPlayer = deck.get(0);
-        for (int i = 0; i< playerCount;i++){
-            addedCard = deck.get(0);
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        String drawForWho = spinner.getSelectedItem().toString();
+        if(drawForWho  == "All players") {
+            int addedCard;
+            int playerCount = this.gameroomLocal.playerIDs.size();
+            int addedCardForThisPlayer = deck.get(0);
+            for (int i = 0; i < playerCount; i++) {
+                addedCard = deck.get(0);
+                this.deck.remove(0);
+                this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
+                if (this.gameroomLocal.playerIDs.get(i) == this.displayName)
+                    addedCardForThisPlayer = addedCard;
+            }
+
+            updateGameRoom();
+            displayAddedCardInHand(addedCardForThisPlayer);
+        }
+        else{
+            int addedCardForThisPlayer = deck.get(0);
             this.deck.remove(0);
-            this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
-            if(this.gameroomLocal.playerIDs.get(i) == this.displayName)
-                addedCardForThisPlayer = addedCard;
+            this.gameroomLocal.playerHands.get(drawForWho).add(addedCardForThisPlayer);
+
+            if(drawForWho.equals(this.displayName)) {
+                displayAddedCardInHand(addedCardForThisPlayer);}
+            updateGameRoom();
+        }
+    }
+
+
+    /**
+     * Takes the last card or cards back from the selected players
+     */
+
+    public void takeCardBack(View view){
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        String takeFromWho = spinner.getSelectedItem().toString();
+        if(takeFromWho == "All players"){
+            int playerCount = this.gameroomLocal.playerIDs.size();
+            int removedCardForThisPlayer;
+            for (int i = 0; i < playerCount; i++) {
+                this.deck.remove(0);
+                // remove the last card
+                int lastcardIndex = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size()-1;
+                if(lastcardIndex > 0) {
+                    removedCardForThisPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).get(lastcardIndex);
+                    this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).remove(lastcardIndex);
+                    this.deck.add(Integer.valueOf(removedCardForThisPlayer));
+                    if (this.gameroomLocal.playerIDs.get(i).equals(this.displayName))
+                        removeCardFromHand(removedCardForThisPlayer);
+                }
+            }
+
+            updateGameRoom();
+        }
+        else{
+            int removedCardForThisPlayer;
+            int lastcardIndex = this.gameroomLocal.playerHands.get(takeFromWho).size() -1;
+            if(lastcardIndex > 0){
+                removedCardForThisPlayer = this.gameroomLocal.playerHands.get(takeFromWho).get(lastcardIndex);
+                this.gameroomLocal.playerHands.get(takeFromWho).remove(lastcardIndex);
+                this.deck.add(Integer.valueOf(removedCardForThisPlayer));
+                if(takeFromWho.equals(this.displayName)){
+                    removeCardFromHand(removedCardForThisPlayer);
+                }
+            }
+            updateGameRoom();
         }
 
-        updateGameRoom();
-        displayAddedCardInHand(addedCardForThisPlayer);
     }
 
     /**
@@ -181,6 +245,32 @@ public class GameScreenHost extends AppCompatActivity {
         for(int i =0;i<cards.size();i++){
             card = cards.get(i);
             assignCards(card,iv_card1);
+        }
+    }
+
+    /**
+     * Update the spinner with players
+     */
+
+    public void updateSpinnerWithPlayers(){
+        //Spinner tests
+        ArrayList<String> currentPlayers = new ArrayList<String>();
+        for(int i = 0; i < this.gameroomLocal.playerIDs.size();i++){
+            currentPlayers.add(this.gameroomLocal.playerIDs.get(i));
+        }
+        currentPlayers.add("All players");
+
+        if(!this.previousPlayers.containsAll(currentPlayers)) {
+            this.previousPlayers = new ArrayList<String>();
+            for(int i = 0; i < this.gameroomLocal.playerIDs.size();i++){
+                this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
+            }
+            if (!this.previousPlayers.contains("All players"))
+                this.previousPlayers.add(0,"All players");
+            Spinner spinner = (Spinner) findViewById(R.id.spinner);
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
+            spinner.setAdapter(spinnerAdapter);
         }
     }
 
@@ -541,6 +631,14 @@ public class GameScreenHost extends AppCompatActivity {
 
         displayPlayedCards();
         updateGameRoom();
+    }
+
+    public void removeCardFromHand(int cardid){
+        View view = (View) findViewById(cardid);
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeView(view);
+        }
     }
 
     /**
