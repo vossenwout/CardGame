@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity  {
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         EditText txtView = (EditText) findViewById(R.id.userNameEditText);
-        if(user.getDisplayName() != null)
+        if(user != null)
             txtView.setText(user.getDisplayName());
 
 

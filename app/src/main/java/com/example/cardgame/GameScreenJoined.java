@@ -104,8 +104,6 @@ public class GameScreenJoined extends AppCompatActivity {
 
 
     public void changeRoom(GameRoom room){
-        System.out.println("hello");
-        System.out.println(room.roomName);
         this.gameroomLocal = room;
     }
 
@@ -114,11 +112,23 @@ public class GameScreenJoined extends AppCompatActivity {
      */
 
     public void displayPlayedCards(){
+        /**
         int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() -1);
         //ImageView iv_card1 = (ImageView)findViewById(R.id.iv_card1);
         if (card != 99999){
             ImageView playstack = (ImageView)findViewById(R.id.playstack);
             assignCards(card,playstack );
+        }
+         */
+        int totalAmountOfPlayedCards= this.gameroomLocal.playedCards.size();
+        if(totalAmountOfPlayedCards <= 1){
+            ImageView playstack = (ImageView)findViewById(R.id.playstack);
+            playstack.setImageResource(R.drawable.gray_back);
+        }
+        else {
+            int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+            ImageView playstack = (ImageView) findViewById(R.id.playstack);
+            assignCards(card, playstack);
         }
 
     }
@@ -130,20 +140,22 @@ public class GameScreenJoined extends AppCompatActivity {
 
     public void updatePlayerHand(){
         ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
-        // Add new cards to the player's hand
-        for(int i=0; i < newPlayerHand.size();i++){
-            if(!this.playerHand.contains(newPlayerHand.get(i)))
-                if(newPlayerHand.get(i) != 99999)
-                    displayAddedCardInHand(newPlayerHand.get(i));
-        }
-        // Remove removed cards from the player's jamd
-        for(int i=0; i < this.playerHand.size();i++){
-            if(!newPlayerHand.contains(this.playerHand.get(i)))
-                if(this.playerHand.get(i) != 99999)
-                    removeCardFromHand(this.playerHand.get(i));
-        }
+        if(newPlayerHand != null) {
+            // Add new cards to the player's hand
+            for (int i = 0; i < newPlayerHand.size(); i++) {
+                if (!this.playerHand.contains(newPlayerHand.get(i)))
+                    if (newPlayerHand.get(i) != 99999)
+                        displayAddedCardInHand(newPlayerHand.get(i));
+            }
+            // Remove removed cards from the player's jamd
+            for (int i = 0; i < this.playerHand.size(); i++) {
+                if (!newPlayerHand.contains(this.playerHand.get(i)))
+                    if (this.playerHand.get(i) != 99999)
+                        removeCardFromHand(this.playerHand.get(i));
+            }
 
-        this.playerHand = newPlayerHand;
+            this.playerHand = newPlayerHand;
+        }
     }
 
     /**
@@ -445,6 +457,18 @@ public class GameScreenJoined extends AppCompatActivity {
         switch (card){
             case 413:
                 cardView.setImageResource(R.drawable.kc);
+        }
+    }
+
+    public void takeFromStack(View view){
+        int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+        if(totalAmountOfPlayedCards > 1) {
+            int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
+            this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards-1);
+            this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
+            displayAddedCardInHand(topcard);
+            displayPlayedCards();
+            updateGameRoom();
         }
     }
 }

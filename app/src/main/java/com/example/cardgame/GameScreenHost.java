@@ -272,6 +272,22 @@ public class GameScreenHost extends AppCompatActivity {
                     android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
             spinner.setAdapter(spinnerAdapter);
         }
+
+        if(!currentPlayers.containsAll(this.previousPlayers)) {
+            this.previousPlayers = new ArrayList<String>();
+            for(int i = 0; i < this.gameroomLocal.playerIDs.size();i++){
+                this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
+            }
+            if (!this.previousPlayers.contains("All players"))
+                this.previousPlayers.add(0,"All players");
+            Spinner spinner = (Spinner) findViewById(R.id.spinner);
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
+            spinner.setAdapter(spinnerAdapter);
+        }
+
+
+
     }
 
     /**
@@ -699,6 +715,7 @@ public class GameScreenHost extends AppCompatActivity {
         if(totalAmountOfPlayedCards > 1) {
             int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
             this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards-1);
+            this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
             displayAddedCardInHand(topcard);
             displayPlayedCards();
             updateGameRoom();
