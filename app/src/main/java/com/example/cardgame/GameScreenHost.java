@@ -5,12 +5,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -27,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-public class GameScreenHost extends AppCompatActivity {
+public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener {
 
 
     private FirebaseDatabase database;
@@ -40,8 +42,8 @@ public class GameScreenHost extends AppCompatActivity {
     private String displayName;
     // players in previous round
     private ArrayList<String> previousPlayers;
-    // ID's to assign to individual cards to control them
-    private int cardid = 9990;
+    // last clicked card
+    private View lastClickedCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +69,7 @@ public class GameScreenHost extends AppCompatActivity {
         //spinner with the playerID's
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -93,7 +95,7 @@ public class GameScreenHost extends AppCompatActivity {
         HashMap<String, ArrayList<Integer>> playerHands = new HashMap<String, ArrayList<Integer>>();
         ArrayList<Integer> player1hand = new ArrayList<Integer>();
         this.player1hand.add(99999);
-        playerHands.put(displayName,this.player1hand);
+        playerHands.put(displayName, this.player1hand);
 
         // list of current players
         ArrayList<String> playerIDs = new ArrayList<String>();
@@ -104,7 +106,7 @@ public class GameScreenHost extends AppCompatActivity {
 
         // cards that are still in the deck
         ArrayList<Integer> deck = new ArrayList<Integer>();
-        GameRoom gameroom = new GameRoom(roomName,playerHands,playerIDs,playedCards,deck,this.roomPassword);
+        GameRoom gameroom = new GameRoom(roomName, playerHands, playerIDs, playedCards, deck, this.roomPassword);
 
         DatabaseReference roomRef = database.getReference().child("GameRooms").child(roomName);
         this.gameroomRef = roomRef;
@@ -121,7 +123,7 @@ public class GameScreenHost extends AppCompatActivity {
      * Used for updating the localGameRoom whenever an update happens
      */
 
-    public void attachGameRoomValueListener(DatabaseReference roomRef){
+    public void attachGameRoomValueListener(DatabaseReference roomRef) {
         ValueEventListener roomValueListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -143,21 +145,18 @@ public class GameScreenHost extends AppCompatActivity {
      * Used to change the gameroomLocal variable with the up to date game room
      */
 
-    public void changeRoom(GameRoom room){
+    public void changeRoom(GameRoom room) {
         this.gameroomLocal = room;
     }
 
     /**
      * Draws a card for every player in the game and updates it
      */
-    public void drawCard(View view){
+    public void drawCard(View view) {
         //Collections.shuffle(deck);
-        //int addedCard = deck.get(0);
-        //this.deck.remove(0);
-        //this.gameroomLocal.playerHands.get("player1").add(addedCard);
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         String drawForWho = spinner.getSelectedItem().toString();
-        if(drawForWho  == "All players") {
+        if (drawForWho == "All players") {
             int addedCard;
             int playerCount = this.gameroomLocal.playerIDs.size();
             int addedCardForThisPlayer = deck.get(0);
@@ -171,34 +170,45 @@ public class GameScreenHost extends AppCompatActivity {
 
             updateGameRoom();
             displayAddedCardInHand(addedCardForThisPlayer);
-        }
-        else{
+        } else {
             int addedCardForThisPlayer = deck.get(0);
             this.deck.remove(0);
             this.gameroomLocal.playerHands.get(drawForWho).add(addedCardForThisPlayer);
 
-            if(drawForWho.equals(this.displayName)) {
-                displayAddedCardInHand(addedCardForThisPlayer);}
+            if (drawForWho.equals(this.displayName)) {
+                displayAddedCardInHand(addedCardForThisPlayer);
+            }
             updateGameRoom();
         }
     }
+
+    public void giveCard(int card, String playerName){
+        if(!playerName.equals(this.displayName)){
+            this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(card));
+            this.gameroomLocal.playerHands.get(playerName).add(Integer.valueOf(card));
+            removeCardFromHand(card);
+            updateGameRoom();
+        }
+    }
+
+
 
 
     /**
      * Takes the last card or cards back from the selected players
      */
 
-    public void takeCardBack(View view){
+    public void takeCardBack(View view) {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         String takeFromWho = spinner.getSelectedItem().toString();
-        if(takeFromWho == "All players"){
+        if (takeFromWho == "All players") {
             int playerCount = this.gameroomLocal.playerIDs.size();
             int removedCardForThisPlayer;
             for (int i = 0; i < playerCount; i++) {
                 this.deck.remove(0);
                 // remove the last card
-                int lastcardIndex = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size()-1;
-                if(lastcardIndex > 0) {
+                int lastcardIndex = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size() - 1;
+                if (lastcardIndex > 0) {
                     removedCardForThisPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).get(lastcardIndex);
                     this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).remove(lastcardIndex);
                     this.deck.add(Integer.valueOf(removedCardForThisPlayer));
@@ -208,15 +218,14 @@ public class GameScreenHost extends AppCompatActivity {
             }
 
             updateGameRoom();
-        }
-        else{
+        } else {
             int removedCardForThisPlayer;
-            int lastcardIndex = this.gameroomLocal.playerHands.get(takeFromWho).size() -1;
-            if(lastcardIndex > 0){
+            int lastcardIndex = this.gameroomLocal.playerHands.get(takeFromWho).size() - 1;
+            if (lastcardIndex > 0) {
                 removedCardForThisPlayer = this.gameroomLocal.playerHands.get(takeFromWho).get(lastcardIndex);
                 this.gameroomLocal.playerHands.get(takeFromWho).remove(lastcardIndex);
                 this.deck.add(Integer.valueOf(removedCardForThisPlayer));
-                if(takeFromWho.equals(this.displayName)){
+                if (takeFromWho.equals(this.displayName)) {
                     removeCardFromHand(removedCardForThisPlayer);
                 }
             }
@@ -229,13 +238,13 @@ public class GameScreenHost extends AppCompatActivity {
      * Displays all cards in this player's hand
      */
 
-    public void displayCardsPlayerHand(){
+    public void displayCardsPlayerHand() {
         ArrayList<Integer> cards = gameroomLocal.playerHands.get("player1");
-        ImageView iv_card1 = (ImageView)findViewById(R.id.iv_card1);
+        ImageView iv_card1 = (ImageView) findViewById(R.id.iv_card1);
         int card;
-        for(int i =0;i<cards.size();i++){
+        for (int i = 0; i < cards.size(); i++) {
             card = cards.get(i);
-            assignCards(card,iv_card1);
+            assignCards(card, iv_card1);
         }
     }
 
@@ -243,40 +252,39 @@ public class GameScreenHost extends AppCompatActivity {
      * Update the spinner with players
      */
 
-    public void updateSpinnerWithPlayers(){
+    public void updateSpinnerWithPlayers() {
         //Spinner tests
         ArrayList<String> currentPlayers = new ArrayList<String>();
-        for(int i = 0; i < this.gameroomLocal.playerIDs.size();i++){
+        for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
             currentPlayers.add(this.gameroomLocal.playerIDs.get(i));
         }
         currentPlayers.add("All players");
 
-        if(!this.previousPlayers.containsAll(currentPlayers)) {
+        if (!this.previousPlayers.containsAll(currentPlayers)) {
             this.previousPlayers = new ArrayList<String>();
-            for(int i = 0; i < this.gameroomLocal.playerIDs.size();i++){
+            for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
                 this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
             }
             if (!this.previousPlayers.contains("All players"))
-                this.previousPlayers.add(0,"All players");
+                this.previousPlayers.add(0, "All players");
             Spinner spinner = (Spinner) findViewById(R.id.spinner);
             ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
                     android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
             spinner.setAdapter(spinnerAdapter);
         }
 
-        if(!currentPlayers.containsAll(this.previousPlayers)) {
+        if (!currentPlayers.containsAll(this.previousPlayers)) {
             this.previousPlayers = new ArrayList<String>();
-            for(int i = 0; i < this.gameroomLocal.playerIDs.size();i++){
+            for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
                 this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
             }
             if (!this.previousPlayers.contains("All players"))
-                this.previousPlayers.add(0,"All players");
+                this.previousPlayers.add(0, "All players");
             Spinner spinner = (Spinner) findViewById(R.id.spinner);
             ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
                     android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
             spinner.setAdapter(spinnerAdapter);
         }
-
 
 
     }
@@ -286,13 +294,13 @@ public class GameScreenHost extends AppCompatActivity {
      * as the id of the card
      */
 
-    public void displayAddedCardInHand(int card){
+    public void displayAddedCardInHand(int card) {
         LayoutInflater inflator = LayoutInflater.from(this);
         LinearLayout gallery = findViewById(R.id.gallery);
-        View view2 = inflator.inflate(R.layout.card,gallery,false);
+        View view2 = inflator.inflate(R.layout.card, gallery, false);
         gallery.addView(view2);
         // creates an unique id for each card
-        ImageView kaart= findViewById(R.id.kaart);
+        ImageView kaart = findViewById(R.id.kaart);
         assignCards(card, kaart);
         kaart.setId(card);
         //cardid += 1;
@@ -300,225 +308,225 @@ public class GameScreenHost extends AppCompatActivity {
 
 
     // assigns the corresponding image to the cardview of the card thats been drawn
-    public void assignCards(int card, ImageView cardView){
+    public void assignCards(int card, ImageView cardView) {
         //hearts
-        switch (card){
+        switch (card) {
             case 101:
                 cardView.setImageResource(R.drawable.ah);
         }
-        switch (card){
+        switch (card) {
             case 102:
                 cardView.setImageResource(R.drawable.c2h);
         }
-        switch (card){
+        switch (card) {
             case 103:
                 cardView.setImageResource(R.drawable.c3h);
         }
-        switch (card){
+        switch (card) {
             case 104:
                 cardView.setImageResource(R.drawable.c4h);
         }
-        switch (card){
+        switch (card) {
             case 105:
                 cardView.setImageResource(R.drawable.c5h);
         }
-        switch (card){
+        switch (card) {
             case 106:
                 cardView.setImageResource(R.drawable.c6h);
         }
-        switch (card){
+        switch (card) {
             case 107:
                 cardView.setImageResource(R.drawable.c7h);
         }
-        switch (card){
+        switch (card) {
             case 108:
                 cardView.setImageResource(R.drawable.c8h);
         }
-        switch (card){
+        switch (card) {
             case 109:
                 cardView.setImageResource(R.drawable.c9h);
         }
-        switch (card){
+        switch (card) {
             case 110:
                 cardView.setImageResource(R.drawable.c10h);
         }
-        switch (card){
+        switch (card) {
             case 111:
                 cardView.setImageResource(R.drawable.jh);
         }
-        switch (card){
+        switch (card) {
             case 112:
                 cardView.setImageResource(R.drawable.qh);
         }
-        switch (card){
+        switch (card) {
             case 113:
                 cardView.setImageResource(R.drawable.kh);
         }
 
         //diamonds
-        switch (card){
+        switch (card) {
             case 201:
                 cardView.setImageResource(R.drawable.ad);
         }
-        switch (card){
+        switch (card) {
             case 202:
                 cardView.setImageResource(R.drawable.c2d);
         }
-        switch (card){
+        switch (card) {
             case 203:
                 cardView.setImageResource(R.drawable.c3d);
         }
-        switch (card){
+        switch (card) {
             case 204:
                 cardView.setImageResource(R.drawable.c4d);
         }
-        switch (card){
+        switch (card) {
             case 205:
                 cardView.setImageResource(R.drawable.c5d);
         }
-        switch (card){
+        switch (card) {
             case 206:
                 cardView.setImageResource(R.drawable.c6d);
         }
-        switch (card){
+        switch (card) {
             case 207:
                 cardView.setImageResource(R.drawable.c7d);
         }
-        switch (card){
+        switch (card) {
             case 208:
                 cardView.setImageResource(R.drawable.c8d);
         }
-        switch (card){
+        switch (card) {
             case 209:
                 cardView.setImageResource(R.drawable.c9d);
         }
-        switch (card){
+        switch (card) {
             case 210:
                 cardView.setImageResource(R.drawable.c10d);
         }
-        switch (card){
+        switch (card) {
             case 211:
                 cardView.setImageResource(R.drawable.jd);
         }
-        switch (card){
+        switch (card) {
             case 212:
                 cardView.setImageResource(R.drawable.qd);
         }
-        switch (card){
+        switch (card) {
             case 213:
                 cardView.setImageResource(R.drawable.kd);
         }
 
         //spades
-        switch (card){
+        switch (card) {
             case 301:
                 cardView.setImageResource(R.drawable.as);
         }
-        switch (card){
+        switch (card) {
             case 302:
                 cardView.setImageResource(R.drawable.c2s);
         }
-        switch (card){
+        switch (card) {
             case 303:
                 cardView.setImageResource(R.drawable.c3s);
         }
-        switch (card){
+        switch (card) {
             case 304:
                 cardView.setImageResource(R.drawable.c4s);
         }
-        switch (card){
+        switch (card) {
             case 305:
                 cardView.setImageResource(R.drawable.c5s);
         }
-        switch (card){
+        switch (card) {
             case 306:
                 cardView.setImageResource(R.drawable.c6s);
         }
-        switch (card){
+        switch (card) {
             case 307:
                 cardView.setImageResource(R.drawable.c7s);
         }
-        switch (card){
+        switch (card) {
             case 308:
                 cardView.setImageResource(R.drawable.c8s);
         }
-        switch (card){
+        switch (card) {
             case 309:
                 cardView.setImageResource(R.drawable.c9s);
         }
-        switch (card){
+        switch (card) {
             case 310:
                 cardView.setImageResource(R.drawable.c10s);
         }
-        switch (card){
+        switch (card) {
             case 311:
                 cardView.setImageResource(R.drawable.js);
         }
-        switch (card){
+        switch (card) {
             case 312:
                 cardView.setImageResource(R.drawable.qs);
         }
-        switch (card){
+        switch (card) {
             case 313:
                 cardView.setImageResource(R.drawable.ks);
         }
 
         //clubs
-        switch (card){
+        switch (card) {
             case 401:
                 cardView.setImageResource(R.drawable.ac);
         }
-        switch (card){
+        switch (card) {
             case 402:
                 cardView.setImageResource(R.drawable.c2c);
         }
-        switch (card){
+        switch (card) {
             case 403:
                 cardView.setImageResource(R.drawable.c3c);
         }
-        switch (card){
+        switch (card) {
             case 404:
                 cardView.setImageResource(R.drawable.c4c);
         }
-        switch (card){
+        switch (card) {
             case 405:
                 cardView.setImageResource(R.drawable.c5c);
         }
-        switch (card){
+        switch (card) {
             case 406:
                 cardView.setImageResource(R.drawable.c6c);
         }
-        switch (card){
+        switch (card) {
             case 407:
                 cardView.setImageResource(R.drawable.c7c);
         }
-        switch (card){
+        switch (card) {
             case 408:
                 cardView.setImageResource(R.drawable.c8c);
         }
-        switch (card){
+        switch (card) {
             case 409:
                 cardView.setImageResource(R.drawable.c9c);
         }
-        switch (card){
+        switch (card) {
             case 410:
                 cardView.setImageResource(R.drawable.c10c);
         }
-        switch (card){
+        switch (card) {
             case 411:
                 cardView.setImageResource(R.drawable.jc);
         }
-        switch (card){
+        switch (card) {
             case 412:
                 cardView.setImageResource(R.drawable.qc);
         }
-        switch (card){
+        switch (card) {
             case 413:
                 cardView.setImageResource(R.drawable.kc);
         }
     }
 
-    public void initDeck(){
+    public void initDeck() {
         deck = new ArrayList<>();
         // hearts
         deck.add(101);
@@ -582,12 +590,12 @@ public class GameScreenHost extends AppCompatActivity {
      * Reader to read the set of all the rooms currently used and also create the room
      */
 
-    public void removeLobby(final DatabaseReference totalRoomsRef){
+    public void removeLobby(final DatabaseReference totalRoomsRef) {
         ValueEventListener postListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<String> roomNames = (ArrayList<String>) dataSnapshot.getValue();
-                removeLobbyFromList(roomNames,totalRoomsRef);
+                removeLobbyFromList(roomNames, totalRoomsRef);
             }
 
             @Override
@@ -601,7 +609,7 @@ public class GameScreenHost extends AppCompatActivity {
     }
 
 
-    public void removeLobbyFromList(ArrayList<String> roomNames, DatabaseReference totalRoomsRef){
+    public void removeLobbyFromList(ArrayList<String> roomNames, DatabaseReference totalRoomsRef) {
         roomNames.remove(this.gameroomLocalName);
         totalRoomsRef.removeValue();
         totalRoomsRef.setValue(roomNames);
@@ -614,7 +622,7 @@ public class GameScreenHost extends AppCompatActivity {
      * Close the lobby and go back to main screen
      */
 
-    public void goBack(View view){
+    public void goBack(View view) {
         DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
         removeLobby(totalRoomsRef);
         Intent intent = new Intent(this, MainActivity.class);
@@ -626,21 +634,19 @@ public class GameScreenHost extends AppCompatActivity {
      * THis is called when you click on a card
      */
 
-    public void playCard(View view){
-        System.out.println(view.getId());
-        // Removes the card from the player hand display
-        ViewGroup parent = (ViewGroup) view.getParent();
-        if (parent != null) {
-            parent.removeView(view);
-        }
-        this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(view.getId()));
-        this.gameroomLocal.playedCards.add(view.getId());
+    public void playCard(View view) {
+        // shows the popup menu for what the player wants to do with this card
+        PopupMenu popup = new PopupMenu(this, view);
+        popup.setOnMenuItemClickListener(this);
+        popup.inflate(R.menu.popup_menu_card);
+        popup.show();
+        /////
+        // updates the last played card to the clicked card
+        this.lastClickedCard = view;
 
-        displayPlayedCards();
-        updateGameRoom();
     }
 
-    public void removeCardFromHand(int cardid){
+    public void removeCardFromHand(int cardid) {
         View view = (View) findViewById(cardid);
         ViewGroup parent = (ViewGroup) view.getParent();
         if (parent != null) {
@@ -652,58 +658,60 @@ public class GameScreenHost extends AppCompatActivity {
      * Displays the top card of the middle of the table, (the play stack)
      */
 
-    public void displayPlayedCards(){
+    public void displayPlayedCards() {
 
         /**
-        if(this.gameroomLocal.playedCards != null) {
-            int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-            if (totalAmountOfPlayedCards <= 1) {
-                ImageView playstack = (ImageView) findViewById(R.id.playstack);
-                playstack.setImageResource(R.drawable.gray_back);
-            } else {
-                int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
-                ImageView playstack = (ImageView) findViewById(R.id.playstack);
-                assignCards(card, playstack);
-            }
-        }
-        */
+         if(this.gameroomLocal.playedCards != null) {
+         int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+         if (totalAmountOfPlayedCards <= 1) {
+         ImageView playstack = (ImageView) findViewById(R.id.playstack);
+         playstack.setImageResource(R.drawable.gray_back);
+         } else {
+         int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+         ImageView playstack = (ImageView) findViewById(R.id.playstack);
+         assignCards(card, playstack);
+         }
+         }
+         */
 
-        if(this.gameroomLocal.playedCards != null) {
+        if (this.gameroomLocal.playedCards != null) {
             int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-            if(totalAmountOfPlayedCards < 5 && totalAmountOfPlayedCards >1) {
+            if (totalAmountOfPlayedCards < 5 && totalAmountOfPlayedCards > 1) {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
                 ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
                 ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
                 ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
                 switch (totalAmountOfPlayedCards) {
-                    case 2:{
+                    case 2: {
                         int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
                         playstack.setVisibility(View.VISIBLE);
                         playstack2.setVisibility(View.INVISIBLE);
                         playstack3.setVisibility(View.INVISIBLE);
                         playstack4.setVisibility(View.INVISIBLE);
                         assignCards(card, playstack);
-                        break;}
-                    case 3:{
+                        break;
+                    }
+                    case 3: {
                         int card2 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
                         playstack.setVisibility(View.VISIBLE);
                         playstack2.setVisibility(View.VISIBLE);
                         playstack3.setVisibility(View.INVISIBLE);
                         playstack4.setVisibility(View.INVISIBLE);
                         assignCards(card2, playstack2);
-                        break;}
-                    case 4:{
+                        break;
+                    }
+                    case 4: {
                         int card3 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
                         playstack.setVisibility(View.VISIBLE);
                         playstack2.setVisibility(View.VISIBLE);
                         playstack3.setVisibility(View.VISIBLE);
                         playstack4.setVisibility(View.INVISIBLE);
                         assignCards(card3, playstack3);
-                        break;}
+                        break;
+                    }
 
                 }
-            }
-            else if (totalAmountOfPlayedCards >= 5){
+            } else if (totalAmountOfPlayedCards >= 5) {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
                 ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
                 ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
@@ -716,12 +724,11 @@ public class GameScreenHost extends AppCompatActivity {
                 int currentCard4 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 2);
                 int currentCard3 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 3);
                 int currentCard2 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 4);
-                assignCards(newCard,playstack4);
-                assignCards(currentCard4,playstack3);
-                assignCards(currentCard3,playstack2);
-                assignCards(currentCard2,playstack);
-            }
-            else {
+                assignCards(newCard, playstack4);
+                assignCards(currentCard4, playstack3);
+                assignCards(currentCard3, playstack2);
+                assignCards(currentCard2, playstack);
+            } else {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
                 ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
                 ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
@@ -737,11 +744,11 @@ public class GameScreenHost extends AppCompatActivity {
 
     }
 
-    public void updateGameRoom(){
+    public void updateGameRoom() {
         this.gameroomRef.setValue(this.gameroomLocal);
     }
 
-    public void resetGame(View view){
+    public void resetGame(View view) {
         // We reset the deck
         initDeck();
         // We remove all the cards from the hands of the players
@@ -756,9 +763,9 @@ public class GameScreenHost extends AppCompatActivity {
             if (totalCardsForThatPlayer > 0) {
                 for (int j = 0; j < totalCardsForThatPlayer; j++) {
                     // we iterate trough all the cards of the player and remove these
-                    removedCardForThisPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).get(this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size()-1);
+                    removedCardForThisPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).get(this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size() - 1);
                     if (removedCardForThisPlayer != 99999) {
-                        this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).remove(this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size()-1);
+                        this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).remove(this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size() - 1);
                         if (this.gameroomLocal.playerIDs.get(i).equals(this.displayName)) {
                             removeCardFromHand(removedCardForThisPlayer);
                         }
@@ -788,11 +795,11 @@ public class GameScreenHost extends AppCompatActivity {
      * Takes the  last card from the played cards stack and puts it into the player's hand
      */
 
-    public void takeFromStack(View view){
+    public void takeFromStack(View view) {
         int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-        if(totalAmountOfPlayedCards > 1) {
+        if (totalAmountOfPlayedCards > 1) {
             int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
-            this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards-1);
+            this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
             this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
             displayAddedCardInHand(topcard);
             displayPlayedCards();
@@ -800,4 +807,66 @@ public class GameScreenHost extends AppCompatActivity {
         }
     }
 
+    /**
+     * Need to implement this for the popupmenu on the card
+     */
+
+    @Override
+    public boolean onMenuItemClick(MenuItem menuItem) {
+        /**
+         ViewGroup parent = (ViewGroup) view.getParent();
+         if (parent != null) {
+         parent.removeView(view);
+         }
+         this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(view.getId()));
+         this.gameroomLocal.playedCards.add(view.getId());
+
+         displayPlayedCards();
+         updateGameRoom();
+         */
+
+        switch (menuItem.getItemId()) {
+            // play is clicked
+            case R.id.menuItem1:
+                ViewGroup parent = (ViewGroup) this.lastClickedCard.getParent();
+                if (parent != null) {
+                    parent.removeView(this.lastClickedCard);
+                }
+                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                this.gameroomLocal.playedCards.add(this.lastClickedCard.getId());
+
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+                // give to a player is clicked we show a new menu with the available players
+                // warnning this will call this same on menu item click so we have to handle
+                // this in the default method
+            case R.id.menuItem2:
+                PopupMenu popup = new PopupMenu(this, this.lastClickedCard);
+                popup.setOnMenuItemClickListener(this);
+                int totalPlayers = this.gameroomLocal.playerIDs.size();
+                for (int i = 0; i < totalPlayers; i++) {
+                    popup.getMenu().add(this.gameroomLocal.playerIDs.get(i));
+                }
+                popup.show();
+                break;
+                // remove the card from play, dont put it back in the decck
+            case R.id.menuItem3:
+                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
+                updateGameRoom();
+            // we check if the selected item is one of the playernames
+            default:
+                int totalPlayerss = this.gameroomLocal.playerIDs.size();
+                for (int i = 0; i < totalPlayerss; i++) {
+                    // gives the clicked on card to the selected player
+                    if(menuItem.getTitle() == this.gameroomLocal.playerIDs.get(i)){
+                        giveCard(this.lastClickedCard.getId(),this.gameroomLocal.playerIDs.get(i));
+                    }
+                }
+
+
+        }
+        return true;
+    }
 }
