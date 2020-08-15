@@ -44,6 +44,8 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
     private ArrayList<String> previousPlayers;
     // last clicked card
     private View lastClickedCard;
+    // this players hand
+    private ArrayList<Integer> playerHand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +66,11 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         previousPlayers = new ArrayList<String>();
 
         //Player hand init
+        this.playerHand = new ArrayList<Integer>();
+        // this one is used for init the room
         this.player1hand = new ArrayList<Integer>();
+
+
 
         //spinner with the playerID's
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -130,6 +136,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 GameRoom room = dataSnapshot.getValue(GameRoom.class);
                 changeRoom(room);
                 displayPlayedCards();
+                updatePlayerHand();
                 updateSpinnerWithPlayers();
             }
 
@@ -139,6 +146,31 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             }
         };
         roomRef.addValueEventListener(roomValueListener);
+    }
+
+
+    /**
+     * Checks which new cards are added to the player's hand and updates the visuals acordingly
+     */
+
+    public void updatePlayerHand(){
+        ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
+        if(newPlayerHand != null) {
+            // Add new cards to the player's hand
+            for (int i = 0; i < newPlayerHand.size(); i++) {
+                if (!this.playerHand.contains(newPlayerHand.get(i)))
+                    if (newPlayerHand.get(i) != 99999)
+                        displayAddedCardInHand(newPlayerHand.get(i));
+            }
+            // Remove removed cards from the player's jamd
+            for (int i = 0; i < this.playerHand.size(); i++) {
+                if (!newPlayerHand.contains(this.playerHand.get(i)))
+                    if (this.playerHand.get(i) != 99999)
+                        removeCardFromHand(this.playerHand.get(i));
+            }
+
+            this.playerHand = newPlayerHand;
+        }
     }
 
     /**
@@ -676,11 +708,12 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
         if (this.gameroomLocal.playedCards != null) {
             int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-            if (totalAmountOfPlayedCards < 5 && totalAmountOfPlayedCards > 1) {
+            if (totalAmountOfPlayedCards < 6 && totalAmountOfPlayedCards > 1) {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
                 ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
                 ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
                 ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+                ImageView playstack5 = (ImageView) findViewById(R.id.playstack5);
                 switch (totalAmountOfPlayedCards) {
                     case 2: {
                         int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
@@ -688,6 +721,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                         playstack2.setVisibility(View.INVISIBLE);
                         playstack3.setVisibility(View.INVISIBLE);
                         playstack4.setVisibility(View.INVISIBLE);
+                        playstack5.setVisibility(View.INVISIBLE);
                         assignCards(card, playstack);
                         break;
                     }
@@ -697,6 +731,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                         playstack2.setVisibility(View.VISIBLE);
                         playstack3.setVisibility(View.INVISIBLE);
                         playstack4.setVisibility(View.INVISIBLE);
+                        playstack5.setVisibility(View.INVISIBLE);
                         assignCards(card2, playstack2);
                         break;
                     }
@@ -706,37 +741,55 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                         playstack2.setVisibility(View.VISIBLE);
                         playstack3.setVisibility(View.VISIBLE);
                         playstack4.setVisibility(View.INVISIBLE);
+                        playstack5.setVisibility(View.INVISIBLE);
                         assignCards(card3, playstack3);
+                        break;
+                    }
+                    case 5: {
+                        int card4 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+                        playstack.setVisibility(View.VISIBLE);
+                        playstack2.setVisibility(View.VISIBLE);
+                        playstack3.setVisibility(View.VISIBLE);
+                        playstack4.setVisibility(View.VISIBLE);
+                        playstack5.setVisibility(View.INVISIBLE);
+                        assignCards(card4, playstack4);
                         break;
                     }
 
                 }
-            } else if (totalAmountOfPlayedCards >= 5) {
+            } else if (totalAmountOfPlayedCards >= 6) {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
                 ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
                 ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
                 ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+                ImageView playstack5 = (ImageView) findViewById(R.id.playstack5);
                 playstack.setVisibility(View.VISIBLE);
                 playstack2.setVisibility(View.VISIBLE);
                 playstack3.setVisibility(View.VISIBLE);
                 playstack4.setVisibility(View.VISIBLE);
+                playstack5.setVisibility(View.VISIBLE);
                 int newCard = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
                 int currentCard4 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 2);
                 int currentCard3 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 3);
                 int currentCard2 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 4);
-                assignCards(newCard, playstack4);
-                assignCards(currentCard4, playstack3);
-                assignCards(currentCard3, playstack2);
-                assignCards(currentCard2, playstack);
+                int currentCard1 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 5);
+                assignCards(newCard, playstack5);
+                assignCards(currentCard4, playstack4);
+                assignCards(currentCard3, playstack3);
+                assignCards(currentCard2, playstack2);
+                assignCards(currentCard1,playstack);
             } else {
+                // set everything invisble
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
                 ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
                 ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
                 ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+                ImageView playstack5 = (ImageView) findViewById(R.id.playstack5);
                 playstack.setVisibility(View.INVISIBLE);
                 playstack2.setVisibility(View.INVISIBLE);
                 playstack3.setVisibility(View.INVISIBLE);
                 playstack4.setVisibility(View.INVISIBLE);
+                playstack5.setVisibility(View.INVISIBLE);
             }
 
 
@@ -813,17 +866,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
     @Override
     public boolean onMenuItemClick(MenuItem menuItem) {
-        /**
-         ViewGroup parent = (ViewGroup) view.getParent();
-         if (parent != null) {
-         parent.removeView(view);
-         }
-         this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(view.getId()));
-         this.gameroomLocal.playedCards.add(view.getId());
-
-         displayPlayedCards();
-         updateGameRoom();
-         */
 
         switch (menuItem.getItemId()) {
             // play is clicked
@@ -855,6 +897,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
+                break;
             // we check if the selected item is one of the playernames
             default:
                 int totalPlayerss = this.gameroomLocal.playerIDs.size();
