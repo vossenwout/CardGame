@@ -653,6 +653,8 @@ public class GameScreenHost extends AppCompatActivity {
      */
 
     public void displayPlayedCards(){
+
+        /**
         if(this.gameroomLocal.playedCards != null) {
             int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
             if (totalAmountOfPlayedCards <= 1) {
@@ -664,6 +666,75 @@ public class GameScreenHost extends AppCompatActivity {
                 assignCards(card, playstack);
             }
         }
+        */
+
+        if(this.gameroomLocal.playedCards != null) {
+            int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+            if(totalAmountOfPlayedCards < 5 && totalAmountOfPlayedCards >1) {
+                ImageView playstack = (ImageView) findViewById(R.id.playstack);
+                ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
+                ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
+                ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+                switch (totalAmountOfPlayedCards) {
+                    case 2:{
+                        int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+                        playstack.setVisibility(View.VISIBLE);
+                        playstack2.setVisibility(View.INVISIBLE);
+                        playstack3.setVisibility(View.INVISIBLE);
+                        playstack4.setVisibility(View.INVISIBLE);
+                        assignCards(card, playstack);
+                        break;}
+                    case 3:{
+                        int card2 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+                        playstack.setVisibility(View.VISIBLE);
+                        playstack2.setVisibility(View.VISIBLE);
+                        playstack3.setVisibility(View.INVISIBLE);
+                        playstack4.setVisibility(View.INVISIBLE);
+                        assignCards(card2, playstack2);
+                        break;}
+                    case 4:{
+                        int card3 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+                        playstack.setVisibility(View.VISIBLE);
+                        playstack2.setVisibility(View.VISIBLE);
+                        playstack3.setVisibility(View.VISIBLE);
+                        playstack4.setVisibility(View.INVISIBLE);
+                        assignCards(card3, playstack3);
+                        break;}
+
+                }
+            }
+            else if (totalAmountOfPlayedCards >= 5){
+                ImageView playstack = (ImageView) findViewById(R.id.playstack);
+                ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
+                ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
+                ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+                playstack.setVisibility(View.VISIBLE);
+                playstack2.setVisibility(View.VISIBLE);
+                playstack3.setVisibility(View.VISIBLE);
+                playstack4.setVisibility(View.VISIBLE);
+                int newCard = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
+                int currentCard4 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 2);
+                int currentCard3 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 3);
+                int currentCard2 = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 4);
+                assignCards(newCard,playstack4);
+                assignCards(currentCard4,playstack3);
+                assignCards(currentCard3,playstack2);
+                assignCards(currentCard2,playstack);
+            }
+            else {
+                ImageView playstack = (ImageView) findViewById(R.id.playstack);
+                ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
+                ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
+                ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+                playstack.setVisibility(View.INVISIBLE);
+                playstack2.setVisibility(View.INVISIBLE);
+                playstack3.setVisibility(View.INVISIBLE);
+                playstack4.setVisibility(View.INVISIBLE);
+            }
+
+
+        }
+
     }
 
     public void updateGameRoom(){
@@ -696,11 +767,26 @@ public class GameScreenHost extends AppCompatActivity {
             }
 
         }
-        ImageView playstack = (ImageView)findViewById(R.id.playstack);
-        playstack.setImageResource(R.drawable.gray_back);
+        // we set the middle cards back to invisible
+        ImageView playstack = (ImageView) findViewById(R.id.playstack);
+        ImageView playstack2 = (ImageView) findViewById(R.id.playstack2);
+        ImageView playstack3 = (ImageView) findViewById(R.id.playstack3);
+        ImageView playstack4 = (ImageView) findViewById(R.id.playstack4);
+        playstack.setImageDrawable(null);
+        playstack.setVisibility(View.INVISIBLE);
+        playstack2.setImageDrawable(null);
+        playstack2.setVisibility(View.INVISIBLE);
+        playstack3.setImageDrawable(null);
+        playstack3.setVisibility(View.INVISIBLE);
+        playstack4.setImageDrawable(null);
+        playstack4.setVisibility(View.INVISIBLE);
+        //  we update the gameroom
         updateGameRoom();
     }
 
+    /**
+     * Takes the  last card from the played cards stack and puts it into the player's hand
+     */
 
     public void takeFromStack(View view){
         int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
