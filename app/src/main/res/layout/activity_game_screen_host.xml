@@ -91,7 +91,7 @@
     <HorizontalScrollView
         android:id="@+id/horizontalScrollView"
         android:layout_width="wrap_content"
-        android:layout_height="200dp"
+        android:layout_height="150dp"
         android:layout_marginTop="32dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -104,7 +104,7 @@
         <LinearLayout
             android:id="@+id/gallery"
             android:layout_width="wrap_content"
-            android:layout_height="200dp"
+            android:layout_height="150dp"
             android:orientation="horizontal">
 
 
@@ -140,8 +140,8 @@
         android:id="@+id/button11"
         android:layout_width="130dp"
         android:layout_height="53dp"
-        android:onClick="takeCardBack"
-        android:text="TakeBack Last"
+        android:onClick="shuffleDeck"
+        android:text="Shuffle Deck"
         app:layout_constraintBottom_toTopOf="@+id/button10"
         app:layout_constraintEnd_toEndOf="@+id/button10"
         app:layout_constraintHorizontal_bias="0.0"

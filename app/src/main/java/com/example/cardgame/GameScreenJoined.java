@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -38,6 +39,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
     private String displayName;
     // last clicked card
     private View lastClickedCard;
+    private Boolean welcomeTextVisible = true;
 
     // TODO verander dat de class werkt met de echte playerName ipv POOKIE
 
@@ -247,22 +249,31 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
      */
 
     public void updatePlayerHand(){
-        ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
-        if(newPlayerHand != null) {
-            // Add new cards to the player's hand
-            for (int i = 0; i < newPlayerHand.size(); i++) {
-                if (!this.playerHand.contains(newPlayerHand.get(i)))
-                    if (newPlayerHand.get(i) != 99999)
-                        displayAddedCardInHand(newPlayerHand.get(i));
-            }
-            // Remove removed cards from the player's jamd
-            for (int i = 0; i < this.playerHand.size(); i++) {
-                if (!newPlayerHand.contains(this.playerHand.get(i)))
-                    if (this.playerHand.get(i) != 99999)
-                        removeCardFromHand(this.playerHand.get(i));
-            }
+        if (this.gameroomLocal!= null) {
+            ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
+            if (newPlayerHand != null) {
+                // Add new cards to the player's hand
+                if (newPlayerHand.size() > 1 && this.welcomeTextVisible) {
+                    TextView view = (TextView) findViewById(R.id.startText);
 
-            this.playerHand = newPlayerHand;
+                    view.setVisibility(View.INVISIBLE);
+                    this.welcomeTextVisible = false;
+                }
+
+                for (int i = 0; i < newPlayerHand.size(); i++) {
+                    if (!this.playerHand.contains(newPlayerHand.get(i)))
+                        if (newPlayerHand.get(i) != 99999)
+                            displayAddedCardInHand(newPlayerHand.get(i));
+                }
+                // Remove removed cards from the player's jamd
+                for (int i = 0; i < this.playerHand.size(); i++) {
+                    if (!newPlayerHand.contains(this.playerHand.get(i)))
+                        if (this.playerHand.get(i) != 99999)
+                            removeCardFromHand(this.playerHand.get(i));
+                }
+
+                this.playerHand = newPlayerHand;
+            }
         }
     }
 
@@ -272,6 +283,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
      */
 
     public void displayAddedCardInHand(int card){
+
         LayoutInflater inflator = LayoutInflater.from(this);
         LinearLayout gallery = findViewById(R.id.gallery);
         View view2 = inflator.inflate(R.layout.card,gallery,false);
@@ -340,12 +352,14 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
      */
 
     public void addPlayer(){
-        if (this.gameroomLocal.playerIDs != null){
-            this.gameroomLocal.playerIDs.add(this.displayName);
-            ArrayList<Integer> player2hand = new ArrayList<Integer>();
-            player2hand.add(99999);
-            this.gameroomLocal.playerHands.put(this.displayName,player2hand);
-            updateGameRoom();
+        if(this.gameroomLocal != null) {
+            if (this.gameroomLocal.playerIDs != null) {
+                this.gameroomLocal.playerIDs.add(this.displayName);
+                ArrayList<Integer> player2hand = new ArrayList<Integer>();
+                player2hand.add(99999);
+                this.gameroomLocal.playerHands.put(this.displayName, player2hand);
+                updateGameRoom();
+            }
         }
 
     }
@@ -592,13 +606,16 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
     public void takeFromStack(View view){
         int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-        if(totalAmountOfPlayedCards > 1) {
-            int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
-            this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards-1);
-            this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
-            displayAddedCardInHand(topcard);
-            displayPlayedCards();
-            updateGameRoom();
+        if (totalAmountOfPlayedCards > 1) {
+            // shows the popup menu for what the player wants to do with this card
+            PopupMenu popup = new PopupMenu(this, view);
+            popup.setOnMenuItemClickListener(this);
+            popup.inflate(R.menu.popup_menu_playstack);
+            popup.show();
+            /////
+            // updates the last played card to the clicked card
+            this.lastClickedCard = view;
+
         }
     }
 
@@ -655,6 +672,27 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                 this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
+            case R.id.playmenuItem1:
+                int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+                int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
+                this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
+                this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
+                displayAddedCardInHand(topcard);
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.playmenuItem2:
+                totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+                for(int i = 0; i<totalAmountOfPlayedCards;i++){
+                    this.gameroomLocal.playedCards.remove(0);
+                }
+                this.gameroomLocal.playedCards.add(99999);
+
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            // we check if the selected item is one of the playernames
+
             // we check if the selected item is one of the playernames
             default:
                 int totalPlayerss = this.gameroomLocal.playerIDs.size();

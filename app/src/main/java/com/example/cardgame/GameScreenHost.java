@@ -694,6 +694,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         }
     }
 
+    public void updateSpinnerWithPlayerNames(){
+        ;
+    }
+
     /**
      * Displays the top card of the middle of the table, (the play stack)
      */
@@ -860,13 +864,21 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
     public void takeFromStack(View view) {
         int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
         if (totalAmountOfPlayedCards > 1) {
-            int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
-            this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
-            this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
-            displayAddedCardInHand(topcard);
-            displayPlayedCards();
-            updateGameRoom();
+            // shows the popup menu for what the player wants to do with this card
+            PopupMenu popup = new PopupMenu(this, view);
+            popup.setOnMenuItemClickListener(this);
+            popup.inflate(R.menu.popup_menu_playstack);
+            popup.show();
+            /////
+            // updates the last played card to the clicked card
+            this.lastClickedCard = view;
+
         }
+    }
+
+    public void shuffleDeck(View view){
+        Collections.shuffle(this.gameroomLocal.deck);
+        updateGameRoom();
     }
 
     /**
@@ -913,7 +925,28 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
-            // we check if the selected item is one of the playernames
+
+            case R.id.playmenuItem1:
+                int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+                int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
+                this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
+                this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
+                displayAddedCardInHand(topcard);
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.playmenuItem2:
+                totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+                for(int i = 0; i<totalAmountOfPlayedCards;i++){
+                    this.gameroomLocal.playedCards.remove(0);
+                }
+                this.gameroomLocal.playedCards.add(99999);
+
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+                // we check if the selected item is one of the playernames
+
             default:
                 int totalPlayerss = this.gameroomLocal.playerIDs.size();
                 for (int i = 0; i < totalPlayerss; i++) {
