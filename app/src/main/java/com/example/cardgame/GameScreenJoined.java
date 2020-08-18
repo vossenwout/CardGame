@@ -649,6 +649,12 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
+            case R.id.menuItem4:
+                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
+                this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
+                updateGameRoom();
+                break;
             // we check if the selected item is one of the playernames
             default:
                 int totalPlayerss = this.gameroomLocal.playerIDs.size();

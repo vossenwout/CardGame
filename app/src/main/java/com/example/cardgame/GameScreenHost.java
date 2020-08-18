@@ -111,8 +111,8 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         playedCards.add(99999);
 
         // cards that are still in the deck
-        ArrayList<Integer> deck = new ArrayList<Integer>();
-        GameRoom gameroom = new GameRoom(roomName, playerHands, playerIDs, playedCards, deck, this.roomPassword);
+        //ArrayList<Integer> deck = new ArrayList<Integer>();
+        GameRoom gameroom = new GameRoom(roomName, playerHands, playerIDs, playedCards, this.deck, this.roomPassword);
 
         DatabaseReference roomRef = database.getReference().child("GameRooms").child(roomName);
         this.gameroomRef = roomRef;
@@ -188,29 +188,34 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         //Collections.shuffle(deck);
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         String drawForWho = spinner.getSelectedItem().toString();
-        if (drawForWho == "All players") {
-            int addedCard;
-            int playerCount = this.gameroomLocal.playerIDs.size();
-            int addedCardForThisPlayer = deck.get(0);
-            for (int i = 0; i < playerCount; i++) {
-                addedCard = deck.get(0);
-                this.deck.remove(0);
-                this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
-                if (this.gameroomLocal.playerIDs.get(i) == this.displayName)
-                    addedCardForThisPlayer = addedCard;
-            }
+        if(this.gameroomLocal.deck != null) {
+            if (drawForWho == "All players") {
+                int addedCard;
+                int playerCount = this.gameroomLocal.playerIDs.size();
+                int addedCardForThisPlayer = this.gameroomLocal.deck.get(0);
+                for (int i = 0; i < playerCount; i++) {
+                    addedCard = this.gameroomLocal.deck.get(0);
+                    this.gameroomLocal.deck.remove(0);
+                    this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
+                    if (this.gameroomLocal.playerIDs.get(i) == this.displayName)
+                        addedCardForThisPlayer = addedCard;
+                }
 
-            updateGameRoom();
-            displayAddedCardInHand(addedCardForThisPlayer);
-        } else {
-            int addedCardForThisPlayer = deck.get(0);
-            this.deck.remove(0);
-            this.gameroomLocal.playerHands.get(drawForWho).add(addedCardForThisPlayer);
-
-            if (drawForWho.equals(this.displayName)) {
+                updateGameRoom();
                 displayAddedCardInHand(addedCardForThisPlayer);
+            } else {
+                int addedCardForThisPlayer = this.gameroomLocal.deck.get(0);
+                this.gameroomLocal.deck.remove(0);
+                this.gameroomLocal.playerHands.get(drawForWho).add(addedCardForThisPlayer);
+
+                if (drawForWho.equals(this.displayName)) {
+                    displayAddedCardInHand(addedCardForThisPlayer);
+                }
+                updateGameRoom();
             }
-            updateGameRoom();
+        }
+        else{
+            System.out.println("deck has no more cards");
         }
     }
 
@@ -237,13 +242,13 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             int playerCount = this.gameroomLocal.playerIDs.size();
             int removedCardForThisPlayer;
             for (int i = 0; i < playerCount; i++) {
-                this.deck.remove(0);
+                this.gameroomLocal.deck.remove(0);
                 // remove the last card
                 int lastcardIndex = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).size() - 1;
                 if (lastcardIndex > 0) {
                     removedCardForThisPlayer = this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).get(lastcardIndex);
                     this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).remove(lastcardIndex);
-                    this.deck.add(Integer.valueOf(removedCardForThisPlayer));
+                    this.gameroomLocal.deck.add(Integer.valueOf(removedCardForThisPlayer));
                     if (this.gameroomLocal.playerIDs.get(i).equals(this.displayName))
                         removeCardFromHand(removedCardForThisPlayer);
                 }
@@ -256,7 +261,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             if (lastcardIndex > 0) {
                 removedCardForThisPlayer = this.gameroomLocal.playerHands.get(takeFromWho).get(lastcardIndex);
                 this.gameroomLocal.playerHands.get(takeFromWho).remove(lastcardIndex);
-                this.deck.add(Integer.valueOf(removedCardForThisPlayer));
+                this.gameroomLocal.deck.add(Integer.valueOf(removedCardForThisPlayer));
                 if (takeFromWho.equals(this.displayName)) {
                     removeCardFromHand(removedCardForThisPlayer);
                 }
@@ -616,6 +621,9 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         deck.add(411);
         deck.add(412);
         deck.add(413);
+        if(this.gameroomLocal != null){
+            this.gameroomLocal.deck = deck;
+            updateGameRoom();}
     }
 
     /**
@@ -842,6 +850,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         playstack4.setVisibility(View.INVISIBLE);
         //  we update the gameroom
         updateGameRoom();
+        this.gameroomRef.child("deck").setValue(this.deck);
     }
 
     /**
@@ -896,6 +905,12 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             case R.id.menuItem3:
                 this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
+                updateGameRoom();
+                break;
+            case R.id.menuItem4:
+                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
+                this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
             // we check if the selected item is one of the playernames

@@ -9,6 +9,10 @@
         android:title="Give To" />
 
     <item
+        android:id="@+id/menuItem4"
+        android:title="Put Back In Deck" />
+
+    <item
         android:id="@+id/menuItem3"
         android:title="Discard" />
 
