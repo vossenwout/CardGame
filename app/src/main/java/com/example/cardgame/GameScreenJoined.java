@@ -2,13 +2,13 @@ package com.example.cardgame;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -42,7 +42,6 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
     private View lastClickedCard;
     private Boolean welcomeTextVisible = true;
 
-    // TODO verander dat de class werkt met de echte playerName ipv POOKIE
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +61,10 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
         // Get the Intent that started this activity and extract the roomName of the room we created
         Intent intent = getIntent();
         this.gameroomLocalName = intent.getStringExtra(CreateLobby.EXTRA_MESSAGE);
+
+        // change the top bar to this lobby name
+        setTitle("Lobby Name: " +gameroomLocalName);
+
 
         this.gameroomRef = database.getReference().child("GameRooms").child(this.gameroomLocalName);
         joinGameLobby();
@@ -153,7 +156,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
          }
          */
 
-        if (this.gameroomLocal.playedCards != null) {
+        if (this.gameroomLocal != null) {
             int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
             if (totalAmountOfPlayedCards < 6 && totalAmountOfPlayedCards > 1) {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
@@ -323,15 +326,20 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
      * THis is called when you click on a card
      */
 
+    @SuppressLint("ResourceType")
     public void playCard(View view) {
+        // updates the last played card to the clicked card
+        this.lastClickedCard = view;
+
         // shows the popup menu for what the player wants to do with this card
         PopupMenu popup = new PopupMenu(this, view);
         popup.setOnMenuItemClickListener(this);
-        popup.inflate(R.menu.popup_menu_card);
+        // if the last clicked card is facedown
+        if(this.lastClickedCard.getId() >= 1000)
+            popup.inflate(R.menu.popup_menu_facedown_card);
+        else
+            popup.inflate(R.menu.popup_menu_card);
         popup.show();
-        /////
-        // updates the last played card to the clicked card
-        this.lastClickedCard = view;
 
     }
 
@@ -605,6 +613,10 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
             case 413:
                 cardView.setImageResource(R.drawable.kc);
         }
+        // we add 1000 to a card if its facedown
+        if(card >= 1000){
+            cardView.setImageResource(R.drawable.gray_back);
+        }
     }
 
     public void takeFromStack(View view){
@@ -613,7 +625,10 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
             // shows the popup menu for what the player wants to do with this card
             PopupMenu popup = new PopupMenu(this, view);
             popup.setOnMenuItemClickListener(this);
-            popup.inflate(R.menu.popup_menu_playstack);
+            if(this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards-1) >= 1000)
+                popup.inflate(R.menu.popup_menu_facedownplaystack);
+            else
+                popup.inflate(R.menu.popup_menu_playstack);
             popup.show();
             /////
             // updates the last played card to the clicked card
@@ -635,12 +650,13 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
      * Need to implement this for the popupmenu on the card
      */
 
+    @SuppressLint("ResourceType")
     @Override
     public boolean onMenuItemClick(MenuItem menuItem) {
 
         switch (menuItem.getItemId()) {
             // play is clicked
-            case R.id.menuItem1:
+            case R.id.playMenuItem:
                 ViewGroup parent = (ViewGroup) this.lastClickedCard.getParent();
                 if (parent != null) {
                     parent.removeView(this.lastClickedCard);
@@ -651,10 +667,35 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                 displayPlayedCards();
                 updateGameRoom();
                 break;
+                // plays the card facedown by adding 1000 to the id of the card
+            case R.id.playFaceDownMenuItem:
+                parent = (ViewGroup) this.lastClickedCard.getParent();
+                if (parent != null) {
+                    parent.removeView(this.lastClickedCard);
+                }
+                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                this.gameroomLocal.playedCards.add(this.lastClickedCard.getId()+1000);
+
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.flipCardMenuItem:
+                this.gameroomLocal.playerHands.get(this.displayName).set(this.gameroomLocal.playerHands.get(this.displayName).indexOf(Integer.valueOf(this.lastClickedCard.getId())),Integer.valueOf(this.lastClickedCard.getId())%1000);
+                this.lastClickedCard.setId(this.lastClickedCard.getId()%1000);
+                assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.flipTopCard:
+                this.gameroomLocal.playedCards.set(this.gameroomLocal.playedCards.size() -1, this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size()-1)%1000);
+                //assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                displayPlayedCards();
+                updateGameRoom();
+                break;
             // give to a player is clicked we show a new menu with the available players
             // warnning this will call this same on menu item click so we have to handle
             // this in the default method
-            case R.id.menuItem2:
+            case R.id.GiveTomenuItem:
                 PopupMenu popup = new PopupMenu(this, this.lastClickedCard);
                 popup.setOnMenuItemClickListener(this);
                 int totalPlayers = this.gameroomLocal.playerIDs.size();
@@ -664,18 +705,18 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                 popup.show();
                 break;
             // remove the card from play, dont put it back in the decck
-            case R.id.menuItem3:
+            case R.id.discardMenuItem:
                 this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
-            case R.id.menuItem4:
+            case R.id.PutinDeckMenuItem:
                 this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
                 this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
-            case R.id.playmenuItem1:
+            case R.id.takePlayedCardmenuItem1:
                 int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
                 int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
                 this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
@@ -685,7 +726,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                 displayPlayedCards();
                 updateGameRoom();
                 break;
-            case R.id.playmenuItem2:
+            case R.id.discardPlayedCardsMenuItem:
                 totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
                 for(int i = 0; i<totalAmountOfPlayedCards;i++){
                     this.gameroomLocal.playedCards.remove(0);

@@ -4,8 +4,8 @@
         android:id="@+id/playMenuItem"
         android:title="Play" />
     <item
-        android:id="@+id/playFaceDownMenuItem"
-        android:title="Play (face down)" />
+        android:id="@+id/flipCardMenuItem"
+        android:title="Flip Card" />
 
     <item
         android:id="@+id/GiveTomenuItem"
@@ -18,5 +18,4 @@
     <item
         android:id="@+id/discardMenuItem"
         android:title="Discard" />
-
 </menu>

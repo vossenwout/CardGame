@@ -2,8 +2,10 @@ package com.example.cardgame;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,7 +27,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -157,23 +159,25 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
      */
 
     public void updatePlayerHand(){
-        ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
-        if(newPlayerHand != null) {
-            // Add new cards to the player's hand
-            for (int i = 0; i < newPlayerHand.size(); i++) {
-                if (!this.playerHand.contains(newPlayerHand.get(i)))
-                    if (newPlayerHand.get(i) != 99999){
-                        displayAddedCardInHand(newPlayerHand.get(i));
-                    }
-            }
-            // Remove removed cards from the player's jamd
-            for (int i = 0; i < this.playerHand.size(); i++) {
-                if (!newPlayerHand.contains(this.playerHand.get(i)))
-                    if (this.playerHand.get(i) != 99999)
-                        removeCardFromHand(this.playerHand.get(i));
-            }
+        if(this.gameroomLocal != null) {
+            ArrayList<Integer> newPlayerHand = this.gameroomLocal.playerHands.get(this.displayName);
+            if (newPlayerHand != null) {
+                // Add new cards to the player's hand
+                for (int i = 0; i < newPlayerHand.size(); i++) {
+                    if (!this.playerHand.contains(newPlayerHand.get(i)))
+                        if (newPlayerHand.get(i) != 99999) {
+                            displayAddedCardInHand(newPlayerHand.get(i));
+                        }
+                }
+                // Remove removed cards from the player's jamd
+                for (int i = 0; i < this.playerHand.size(); i++) {
+                    if (!newPlayerHand.contains(this.playerHand.get(i)))
+                        if (this.playerHand.get(i) != 99999)
+                            removeCardFromHand(this.playerHand.get(i));
+                }
 
-            this.playerHand = newPlayerHand;
+                this.playerHand = newPlayerHand;
+            }
         }
     }
 
@@ -192,37 +196,46 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         //Collections.shuffle(deck);
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         String drawForWho = spinner.getSelectedItem().toString();
+
+        Switch facedownswitch = (Switch) findViewById(R.id.facedownSwitch);
+
         if(this.gameroomLocal.deck != null) {
-            if (drawForWho == "All players") {
-                int addedCard;
-                int playerCount = this.gameroomLocal.playerIDs.size();
-                int addedCardForThisPlayer = this.gameroomLocal.deck.get(0);
-                for (int i = 0; i < playerCount; i++) {
-                    addedCard = this.gameroomLocal.deck.get(0);
-                    this.gameroomLocal.deck.remove(0);
-                    this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
-                    if (this.gameroomLocal.playerIDs.get(i) == this.displayName){
-                        Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
-                        addedCardForThisPlayer = addedCard;}
-                }
+            if (this.gameroomLocal.deck.size() > 0){
+                if (drawForWho == "All players") {
+                    int addedCard;
+                    int playerCount = this.gameroomLocal.playerIDs.size();
+                    int addedCardForThisPlayer = this.gameroomLocal.deck.get(0);
+                    for (int i = 0; i < playerCount; i++) {
+                        addedCard = this.gameroomLocal.deck.get(0);
+                        this.gameroomLocal.deck.remove(0);
+                        if (facedownswitch.isChecked() && addedCard < 1000)
+                            addedCard = addedCard + 1000;
+                        this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
+                        if (this.gameroomLocal.playerIDs.get(i).equals(this.displayName)) {
+                            Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
+                            addedCardForThisPlayer = addedCard;
+                        }
+                    }
 
-                updateGameRoom();
-                displayAddedCardInHand(addedCardForThisPlayer);
-            } else {
-                int addedCardForThisPlayer = this.gameroomLocal.deck.get(0);
-                this.gameroomLocal.deck.remove(0);
-                this.gameroomLocal.playerHands.get(drawForWho).add(addedCardForThisPlayer);
-
-                if (drawForWho.equals(this.displayName)) {
+                    updateGameRoom();
                     displayAddedCardInHand(addedCardForThisPlayer);
+                } else {
+                    int addedCardForThisPlayer = this.gameroomLocal.deck.get(0);
+                    this.gameroomLocal.deck.remove(0);
+                    this.gameroomLocal.playerHands.get(drawForWho).add(addedCardForThisPlayer);
 
-                    Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
+                    if (drawForWho.equals(this.displayName)) {
+                        displayAddedCardInHand(addedCardForThisPlayer);
+
+                        Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
+                    }
+                    updateGameRoom();
                 }
-                updateGameRoom();
             }
         }
         else{
-            System.out.println("deck has no more cards");
+            Toast t = Toast.makeText(getApplicationContext(),"Deck has no more cards",Toast.LENGTH_SHORT);
+            t.show();
         }
     }
 
@@ -234,8 +247,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             updateGameRoom();
         }
     }
-
-
 
 
     /**
@@ -278,19 +289,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
     }
 
-    /**
-     * Displays all cards in this player's hand
-     */
 
-    public void displayCardsPlayerHand() {
-        ArrayList<Integer> cards = gameroomLocal.playerHands.get("player1");
-        ImageView iv_card1 = (ImageView) findViewById(R.id.iv_card1);
-        int card;
-        for (int i = 0; i < cards.size(); i++) {
-            card = cards.get(i);
-            assignCards(card, iv_card1);
-        }
-    }
 
     /**
      * Update the spinner with players
@@ -298,39 +297,40 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
     public void updateSpinnerWithPlayers() {
         //Spinner tests
-        ArrayList<String> currentPlayers = new ArrayList<String>();
-        for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
-            currentPlayers.add(this.gameroomLocal.playerIDs.get(i));
-        }
-        currentPlayers.add("All players");
-
-        if (!this.previousPlayers.containsAll(currentPlayers)) {
-            this.previousPlayers = new ArrayList<String>();
+        if(this.gameroomLocal !=null) {
+            ArrayList<String> currentPlayers = new ArrayList<String>();
             for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
-                this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
+                currentPlayers.add(this.gameroomLocal.playerIDs.get(i));
             }
-            if (!this.previousPlayers.contains("All players"))
-                this.previousPlayers.add(0, "All players");
-            Spinner spinner = (Spinner) findViewById(R.id.spinner);
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
-                    android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
-            spinner.setAdapter(spinnerAdapter);
-        }
+            currentPlayers.add("All players");
 
-        if (!currentPlayers.containsAll(this.previousPlayers)) {
-            this.previousPlayers = new ArrayList<String>();
-            for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
-                this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
+            if (!this.previousPlayers.containsAll(currentPlayers)) {
+                this.previousPlayers = new ArrayList<String>();
+                for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
+                    this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
+                }
+                if (!this.previousPlayers.contains("All players"))
+                    this.previousPlayers.add(0, "All players");
+                Spinner spinner = (Spinner) findViewById(R.id.spinner);
+                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                        android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
+                spinner.setAdapter(spinnerAdapter);
             }
-            if (!this.previousPlayers.contains("All players"))
-                this.previousPlayers.add(0, "All players");
-            Spinner spinner = (Spinner) findViewById(R.id.spinner);
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
-                    android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
-            spinner.setAdapter(spinnerAdapter);
+
+            if (!currentPlayers.containsAll(this.previousPlayers)) {
+                this.previousPlayers = new ArrayList<String>();
+                for (int i = 0; i < this.gameroomLocal.playerIDs.size(); i++) {
+                    this.previousPlayers.add(this.gameroomLocal.playerIDs.get(i));
+                }
+                if (!this.previousPlayers.contains("All players"))
+                    this.previousPlayers.add(0, "All players");
+                Spinner spinner = (Spinner) findViewById(R.id.spinner);
+                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                        android.R.layout.simple_spinner_dropdown_item, this.previousPlayers);
+                spinner.setAdapter(spinnerAdapter);
+            }
+
         }
-
-
     }
 
     /**
@@ -350,6 +350,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         //cardid += 1;
     }
 
+    /**
+     * Assign the correct picture to the card, cards that are more then 1000 are faceddown cards
+     *
+     */
 
     // assigns the corresponding image to the cardview of the card thats been drawn
     public void assignCards(int card, ImageView cardView) {
@@ -568,6 +572,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             case 413:
                 cardView.setImageResource(R.drawable.kc);
         }
+        // we add 1000 to a card if its facedown
+        if(card >= 1000){
+            cardView.setImageResource(R.drawable.gray_back);
+        }
     }
 
     public void initDeck() {
@@ -681,15 +689,22 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
      * THis is called when you click on a card
      */
 
+    @SuppressLint("ResourceType")
     public void playCard(View view) {
+
+        // updates the last played card to the clicked card
+        this.lastClickedCard = view;
+
         // shows the popup menu for what the player wants to do with this card
         PopupMenu popup = new PopupMenu(this, view);
         popup.setOnMenuItemClickListener(this);
-        popup.inflate(R.menu.popup_menu_card);
+        // if the last clicked card is facedown
+        if(this.lastClickedCard.getId() >= 1000)
+            popup.inflate(R.menu.popup_menu_facedown_card);
+        else
+            popup.inflate(R.menu.popup_menu_card);
         popup.show();
         /////
-        // updates the last played card to the clicked card
-        this.lastClickedCard = view;
 
     }
 
@@ -701,9 +716,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         }
     }
 
-    public void updateSpinnerWithPlayerNames(){
-        ;
-    }
 
     /**
      * Displays the top card of the middle of the table, (the play stack)
@@ -711,19 +723,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
     public void displayPlayedCards() {
 
-        /**
-         if(this.gameroomLocal.playedCards != null) {
-         int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-         if (totalAmountOfPlayedCards <= 1) {
-         ImageView playstack = (ImageView) findViewById(R.id.playstack);
-         playstack.setImageResource(R.drawable.gray_back);
-         } else {
-         int card = this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1);
-         ImageView playstack = (ImageView) findViewById(R.id.playstack);
-         assignCards(card, playstack);
-         }
-         }
-         */
 
         if (this.gameroomLocal != null) {
             int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
@@ -874,7 +873,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             // shows the popup menu for what the player wants to do with this card
             PopupMenu popup = new PopupMenu(this, view);
             popup.setOnMenuItemClickListener(this);
-            popup.inflate(R.menu.popup_menu_playstack);
+            if(this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards-1) >= 1000)
+                popup.inflate(R.menu.popup_menu_facedownplaystack);
+            else
+                popup.inflate(R.menu.popup_menu_playstack);
             popup.show();
             /////
             // updates the last played card to the clicked card
@@ -885,6 +887,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
     public void shuffleDeck(View view){
         Collections.shuffle(this.gameroomLocal.deck);
+        Toast.makeText(getApplicationContext(), "Deck has been shuffled", Toast.LENGTH_SHORT).show();
         updateGameRoom();
     }
 
@@ -892,12 +895,13 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
      * Need to implement this for the popupmenu on the card
      */
 
+    @SuppressLint("ResourceType")
     @Override
     public boolean onMenuItemClick(MenuItem menuItem) {
 
         switch (menuItem.getItemId()) {
             // play is clicked
-            case R.id.menuItem1:
+            case R.id.playMenuItem:
                 ViewGroup parent = (ViewGroup) this.lastClickedCard.getParent();
                 if (parent != null) {
                     parent.removeView(this.lastClickedCard);
@@ -908,10 +912,32 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 displayPlayedCards();
                 updateGameRoom();
                 break;
-                // give to a player is clicked we show a new menu with the available players
-                // warnning this will call this same on menu item click so we have to handle
-                // this in the default method
-            case R.id.menuItem2:
+                // play facedown is clicked
+            case R.id.playFaceDownMenuItem:
+                parent = (ViewGroup) this.lastClickedCard.getParent();
+                if (parent != null) {
+                    parent.removeView(this.lastClickedCard);
+                }
+                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                this.gameroomLocal.playedCards.add(this.lastClickedCard.getId()+1000);
+
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.flipCardMenuItem:
+                this.gameroomLocal.playerHands.get(this.displayName).set(this.gameroomLocal.playerHands.get(this.displayName).indexOf(Integer.valueOf(this.lastClickedCard.getId())),Integer.valueOf(this.lastClickedCard.getId())%1000);
+                this.lastClickedCard.setId(this.lastClickedCard.getId()%1000);
+                assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.flipTopCard:
+                this.gameroomLocal.playedCards.set(this.gameroomLocal.playedCards.size() -1, this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size()-1)%1000);
+                //assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                displayPlayedCards();
+                updateGameRoom();
+                break;
+            case R.id.GiveTomenuItem:
                 PopupMenu popup = new PopupMenu(this, this.lastClickedCard);
                 popup.setOnMenuItemClickListener(this);
                 int totalPlayers = this.gameroomLocal.playerIDs.size();
@@ -921,19 +947,19 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 popup.show();
                 break;
                 // remove the card from play, dont put it back in the decck
-            case R.id.menuItem3:
+            case R.id.discardMenuItem:
                 this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
-            case R.id.menuItem4:
+            case R.id.PutinDeckMenuItem:
                 this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
                 removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
                 this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
                 updateGameRoom();
                 break;
 
-            case R.id.playmenuItem1:
+            case R.id.takePlayedCardmenuItem1:
                 int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
                 int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
                 this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
@@ -943,7 +969,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 displayPlayedCards();
                 updateGameRoom();
                 break;
-            case R.id.playmenuItem2:
+            case R.id.discardPlayedCardsMenuItem:
                 totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
                 for(int i = 0; i<totalAmountOfPlayedCards;i++){
                     this.gameroomLocal.playedCards.remove(0);
@@ -968,4 +994,5 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         }
         return true;
     }
+
 }

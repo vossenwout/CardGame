@@ -5,6 +5,10 @@
         android:title="Take Card" />
 
     <item
+        android:id="@+id/flipTopCard"
+        android:title="Flip Top Card" />
+
+    <item
         android:id="@+id/discardPlayedCardsMenuItem"
         android:title="Discard all played cards" />
 </menu>
