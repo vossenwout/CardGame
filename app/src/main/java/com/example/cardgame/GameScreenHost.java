@@ -79,8 +79,8 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String itemValue = parent.getItemAtPosition(position).toString();
-                Toast.makeText(parent.getContext(), itemValue, Toast.LENGTH_SHORT).show();
+                //String itemValue = parent.getItemAtPosition(position).toString();
+                //Toast.makeText(parent.getContext(), itemValue, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -93,6 +93,9 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         Intent intent = getIntent();
         String roomName = intent.getStringExtra(CreateLobby.EXTRA_MESSAGE);
         gameroomLocalName = roomName;
+
+        // change the top bar to this lobby name
+        setTitle("Lobby Name: " +gameroomLocalName);
 
         // Set the password for people to join the room
         this.roomPassword = intent.getStringExtra(CreateLobby.PASSWORD);
@@ -159,8 +162,9 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
             // Add new cards to the player's hand
             for (int i = 0; i < newPlayerHand.size(); i++) {
                 if (!this.playerHand.contains(newPlayerHand.get(i)))
-                    if (newPlayerHand.get(i) != 99999)
+                    if (newPlayerHand.get(i) != 99999){
                         displayAddedCardInHand(newPlayerHand.get(i));
+                    }
             }
             // Remove removed cards from the player's jamd
             for (int i = 0; i < this.playerHand.size(); i++) {
@@ -197,8 +201,9 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                     addedCard = this.gameroomLocal.deck.get(0);
                     this.gameroomLocal.deck.remove(0);
                     this.gameroomLocal.playerHands.get(this.gameroomLocal.playerIDs.get(i)).add(addedCard);
-                    if (this.gameroomLocal.playerIDs.get(i) == this.displayName)
-                        addedCardForThisPlayer = addedCard;
+                    if (this.gameroomLocal.playerIDs.get(i) == this.displayName){
+                        Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
+                        addedCardForThisPlayer = addedCard;}
                 }
 
                 updateGameRoom();
@@ -210,6 +215,8 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
                 if (drawForWho.equals(this.displayName)) {
                     displayAddedCardInHand(addedCardForThisPlayer);
+
+                    Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
                 }
                 updateGameRoom();
             }
@@ -718,7 +725,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
          }
          */
 
-        if (this.gameroomLocal.playedCards != null) {
+        if (this.gameroomLocal != null) {
             int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
             if (totalAmountOfPlayedCards < 6 && totalAmountOfPlayedCards > 1) {
                 ImageView playstack = (ImageView) findViewById(R.id.playstack);
@@ -931,6 +938,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
                 this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
                 this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
+                Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
                 displayAddedCardInHand(topcard);
                 displayPlayedCards();
                 updateGameRoom();

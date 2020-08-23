@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -262,8 +263,10 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
                 for (int i = 0; i < newPlayerHand.size(); i++) {
                     if (!this.playerHand.contains(newPlayerHand.get(i)))
-                        if (newPlayerHand.get(i) != 99999)
+                        if (newPlayerHand.get(i) != 99999){
                             displayAddedCardInHand(newPlayerHand.get(i));
+                            Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
+                        }
                 }
                 // Remove removed cards from the player's jamd
                 for (int i = 0; i < this.playerHand.size(); i++) {
@@ -678,6 +681,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                 this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
                 this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
                 displayAddedCardInHand(topcard);
+                Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
                 displayPlayedCards();
                 updateGameRoom();
                 break;
