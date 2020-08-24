@@ -146,6 +146,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 displayPlayedCards();
                 updatePlayerHand();
                 updateSpinnerWithPlayers();
+                keepDisconnectsConsistent();
             }
 
             @Override
@@ -156,6 +157,22 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         roomRef.addValueEventListener(roomValueListener);
     }
 
+
+    public void keepDisconnectsConsistent(){
+        if(this.gameroomLocal!=null) {
+            int totalPlayerids = this.gameroomLocal.playerIDs.size();
+            int totalPlayerHands = this.gameroomLocal.playerHands.size();
+            if (totalPlayerids > totalPlayerHands) {
+                for (int i = 0; i < totalPlayerids; i++) {
+                    if (!this.gameroomLocal.playerHands.containsKey(this.gameroomLocal.playerIDs.get(i))) {
+                        this.gameroomLocal.playerIDs.remove(this.gameroomLocal.playerIDs.get(i));
+                    }
+                }
+
+                updateGameRoom();
+            }
+        }
+    }
 
     /**
      * Checks which new cards are added to the player's hand and updates the visuals acordingly

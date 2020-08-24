@@ -65,6 +65,13 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
         // change the top bar to this lobby name
         setTitle("Lobby Name: " +gameroomLocalName);
 
+        // for on forcefull disconnect to remove own values
+        DatabaseReference roomRefPlayerHands = database.getReference().child("GameRooms").child(this.gameroomLocalName).child("playerHands").child(this.displayName);
+
+        // TODO maak het zodat dezelfde persoon nog kan terugjoinen of pas aan in host da de playyerIDS dan ook uppgedate worden
+        //DatabaseReference playerIDs = database.getReference().child("GameRooms").child(this.gameroomLocalName).child("playerIDs").child(this.displayName).;
+        roomRefPlayerHands.onDisconnect().removeValue();
+        //playerIDs.onDisconnect().removeValue();
 
         this.gameroomRef = database.getReference().child("GameRooms").child(this.gameroomLocalName);
         joinGameLobby();
