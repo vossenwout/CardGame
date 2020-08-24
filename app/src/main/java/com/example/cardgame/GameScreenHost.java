@@ -123,6 +123,9 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         this.gameroomRef = roomRef;
         gameroomRef.setValue(gameroom);
 
+        // set variables to remove in case the host disconnects
+        gameroomRef.onDisconnect().setValue(null);
+        //DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet")
         //this.gameroomRef = database.getReference().child("GameRooms").child(roomName);
 
         attachGameRoomValueListener(this.gameroomRef);
@@ -678,8 +681,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
      */
 
     public void goBack(View view) {
-        DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
-        removeLobby(totalRoomsRef);
+        //DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
+        //removeLobby(totalRoomsRef);
+
+        this.gameroomRef.removeValue();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }

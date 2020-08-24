@@ -17,6 +17,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class CreateLobby extends AppCompatActivity {
 
@@ -26,7 +27,7 @@ public class CreateLobby extends AppCompatActivity {
     private FirebaseAuth mFirebaseauth;
     private DatabaseReference gameroomRef;
     private static GameRoom gameroomLocal;
-    private ArrayList<String> roomNames;
+    private HashMap roomNames;
     // needs to be turned on and off so we dont keep creating rooms
     private boolean hostingRoomActive = false;
 
@@ -55,7 +56,8 @@ public class CreateLobby extends AppCompatActivity {
 
         //Generate roomName by looking in folder containing all group names
 
-        DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
+        //DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
+        DatabaseReference totalRoomsRef = database.getReference().child("GameRooms");
         addLobby(totalRoomsRef,roomName);
     }
 
@@ -69,15 +71,17 @@ public class CreateLobby extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(!hostingRoomActive) {
                     // Get Post object and use the values to update the UI
-                    ArrayList<String> roomNames = (ArrayList<String>) dataSnapshot.getValue();
+
+                    HashMap roomNames = (HashMap) dataSnapshot.getValue();
                     if (roomNames == null) {
-                        roomNames = new ArrayList<String>();
-                        roomNames.add("test");
-                        totalRoomsRef.setValue(roomNames);
+                        roomNames = new HashMap();
+                        ///roomNames.add("test");
+                        //totalRoomsRef.setValue(roomNames);
                         addRoomnamesSet(roomNames);
                     } else {
                         addRoomnamesSet(roomNames);
                     }
+
                     Boolean isUniqueRoomName = checkOfRoomnameIsUnique(roomname, totalRoomsRef);
                     if(isUniqueRoomName){
                         hostingRoomActive = true;
@@ -110,7 +114,7 @@ public class CreateLobby extends AppCompatActivity {
         System.out.println(gameroomLocal.playerIDs.get(0));
     }
 
-    public void addRoomnamesSet(ArrayList<String> roomNames){
+    public void addRoomnamesSet(HashMap roomNames){
         this.roomNames = roomNames;
     }
 
@@ -120,12 +124,12 @@ public class CreateLobby extends AppCompatActivity {
      */
 
     public Boolean checkOfRoomnameIsUnique(String roomName, DatabaseReference roomsSetRef){
-        if( this.roomNames.contains(roomName)){
+        if( this.roomNames.containsKey(roomName)){
             return false;
         }
         else{
-            this.roomNames.add(roomName);
-            roomsSetRef.setValue(this.roomNames);
+            //this.roomNames.add(roomName);
+            //roomsSetRef.setValue(this.roomNames);
             return true;
         }
     }
