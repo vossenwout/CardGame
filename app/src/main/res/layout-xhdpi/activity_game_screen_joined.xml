@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".GameScreenJoined">
 
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="594dp"
+        android:layout_height="319dp"
+        android:layout_marginTop="36dp"
+        android:background="@drawable/box"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/startText" />
+
     <ImageView
         android:id="@+id/playstack"
         android:layout_width="132dp"
@@ -90,9 +99,10 @@
     <HorizontalScrollView
         android:layout_width="wrap_content"
         android:layout_height="150dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout

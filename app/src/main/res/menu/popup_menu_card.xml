@@ -6,6 +6,9 @@
     <item
         android:id="@+id/playFaceDownMenuItem"
         android:title="Play (face down)" />
+    <item
+        android:id="@+id/flipCard"
+        android:title="Flip" />
 
     <item
         android:id="@+id/GiveTomenuItem"

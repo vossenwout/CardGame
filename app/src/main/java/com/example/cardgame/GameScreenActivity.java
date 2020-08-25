@@ -732,91 +732,105 @@ public class GameScreenActivity extends AppCompatActivity implements PopupMenu.O
     @SuppressLint("ResourceType")
     @Override
     public boolean onMenuItemClick(MenuItem menuItem) {
-
-        switch (menuItem.getItemId()) {
-            // play is clicked
-            case R.id.playMenuItem:
-                ViewGroup parent = (ViewGroup) this.lastClickedCard.getParent();
-                if (parent != null) {
-                    parent.removeView(this.lastClickedCard);
-                }
-                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
-                this.gameroomLocal.playedCards.add(this.lastClickedCard.getId());
-
-                displayPlayedCards();
-                updateGameRoomList();
-                break;
-            // play facedown is clicked
-            case R.id.playFaceDownMenuItem:
-                parent = (ViewGroup) this.lastClickedCard.getParent();
-                if (parent != null) {
-                    parent.removeView(this.lastClickedCard);
-                }
-                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
-                this.gameroomLocal.playedCards.add(this.lastClickedCard.getId()+1000);
-
-                displayPlayedCards();
-                updateGameRoomList();
-                break;
-            case R.id.flipCardMenuItem:
-                this.gameroomLocal.playerHands.get(this.displayName).set(this.gameroomLocal.playerHands.get(this.displayName).indexOf(Integer.valueOf(this.lastClickedCard.getId())),Integer.valueOf(this.lastClickedCard.getId())%1000);
-                this.lastClickedCard.setId(this.lastClickedCard.getId()%1000);
-                assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
-                displayPlayedCards();
-                updateGameRoomList();
-                break;
-            case R.id.flipTopCard:
-                this.gameroomLocal.playedCards.set(this.gameroomLocal.playedCards.size() -1, this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size()-1)%1000);
-                //assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
-                displayPlayedCards();
-                updateGameRoomList();
-                break;
-            case R.id.GiveTomenuItem:
-                break;
-            // remove the card from play, dont put it back in the decck
-            case R.id.discardMenuItem:
-                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
-                removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
-                updateGameRoomList();
-                break;
-            case R.id.PutinDeckMenuItem:
-                this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
-                removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
-                this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
-                updateGameRoomList();
-                break;
-
-            case R.id.takePlayedCardmenuItem1:
-                int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-                int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
-                this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
-                this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
-                Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
-                displayAddedCardInHand(topcard);
-                displayPlayedCards();
-                updateGameRoomList();
-                break;
-            case R.id.discardPlayedCardsMenuItem:
-                totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
-                for(int i = 0; i<totalAmountOfPlayedCards;i++){
-                    this.gameroomLocal.playedCards.remove(0);
-                }
-                this.gameroomLocal.playedCards.add(99999);
-
-                displayPlayedCards();
-                updateGameRoomList();
-                break;
-            // we check if the selected item is one of the playernames
-
-            default:
-                int totalPlayerss = this.gameroomLocal.playerIDs.size();
-                for (int i = 0; i < totalPlayerss; i++) {
-                    // gives the clicked on card to the selected player
-                    if(menuItem.getTitle() == this.gameroomLocal.playerIDs.get(i)){
-                        giveCard(this.lastClickedCard.getId(),this.gameroomLocal.playerIDs.get(i));
+        if(this.lastClickedCard  !=null) {
+            switch (menuItem.getItemId()) {
+                // play is clicked
+                case R.id.playMenuItem:
+                    ViewGroup parent = (ViewGroup) this.lastClickedCard.getParent();
+                    if (parent != null) {
+                        parent.removeView(this.lastClickedCard);
                     }
-                }
+                    this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                    this.gameroomLocal.playedCards.add(this.lastClickedCard.getId());
 
+                    displayPlayedCards();
+                    updateGameRoomList();
+
+                    this.lastClickedCard =null;
+                    break;
+                // play facedown is clicked
+                case R.id.playFaceDownMenuItem:
+                    parent = (ViewGroup) this.lastClickedCard.getParent();
+                    if (parent != null) {
+                        parent.removeView(this.lastClickedCard);
+                    }
+                    this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                    this.gameroomLocal.playedCards.add(this.lastClickedCard.getId() + 1000);
+
+                    displayPlayedCards();
+                    updateGameRoomList();
+
+                    this.lastClickedCard =null;
+                    break;
+                case R.id.flipCardMenuItem:
+                    this.gameroomLocal.playerHands.get(this.displayName).set(this.gameroomLocal.playerHands.get(this.displayName).indexOf(Integer.valueOf(this.lastClickedCard.getId())), Integer.valueOf(this.lastClickedCard.getId()) % 1000);
+                    this.lastClickedCard.setId(this.lastClickedCard.getId() % 1000);
+                    assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                    displayPlayedCards();
+                    updateGameRoomList();
+                    this.lastClickedCard =null;
+                    break;
+                case R.id.flipTopCard:
+                    this.gameroomLocal.playedCards.set(this.gameroomLocal.playedCards.size() - 1, this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1) % 1000);
+                    //assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                    displayPlayedCards();
+                    updateGameRoomList();
+
+                    this.lastClickedCard =null;
+                    break;
+                case R.id.GiveTomenuItem:
+                    break;
+                // remove the card from play, dont put it back in the decck
+                case R.id.discardMenuItem:
+                    this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                    removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
+                    updateGameRoomList();
+                    this.lastClickedCard =null;
+                    break;
+                case R.id.PutinDeckMenuItem:
+                    this.gameroomLocal.playerHands.get(this.displayName).remove(Integer.valueOf(this.lastClickedCard.getId()));
+                    removeCardFromHand(Integer.valueOf(this.lastClickedCard.getId()));
+                    this.gameroomLocal.deck.add(Integer.valueOf(this.lastClickedCard.getId()));
+                    updateGameRoomList();
+
+                    this.lastClickedCard =null;
+                    break;
+
+                case R.id.takePlayedCardmenuItem1:
+                    int totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+                    int topcard = this.gameroomLocal.playedCards.get(totalAmountOfPlayedCards - 1);
+                    this.gameroomLocal.playedCards.remove(totalAmountOfPlayedCards - 1);
+                    this.gameroomLocal.playerHands.get(this.displayName).add(topcard);
+                    Toast.makeText(getApplicationContext(), "Card added to hand", Toast.LENGTH_SHORT).show();
+                    displayAddedCardInHand(topcard);
+                    displayPlayedCards();
+                    updateGameRoomList();
+                    this.lastClickedCard =null;
+                    break;
+                case R.id.discardPlayedCardsMenuItem:
+                    totalAmountOfPlayedCards = this.gameroomLocal.playedCards.size();
+                    for (int i = 0; i < totalAmountOfPlayedCards; i++) {
+                        this.gameroomLocal.playedCards.remove(0);
+                    }
+                    this.gameroomLocal.playedCards.add(99999);
+
+                    displayPlayedCards();
+                    updateGameRoomList();
+                    this.lastClickedCard =null;
+                    break;
+                // we check if the selected item is one of the playernames
+
+                default:
+                    int totalPlayerss = this.gameroomLocal.playerIDs.size();
+                    for (int i = 0; i < totalPlayerss; i++) {
+                        // gives the clicked on card to the selected player
+                        if (menuItem.getTitle() == this.gameroomLocal.playerIDs.get(i)) {
+                            giveCard(this.lastClickedCard.getId(), this.gameroomLocal.playerIDs.get(i));
+                        }
+                    }
+
+            }
+            return true;
         }
         return true;
     }
