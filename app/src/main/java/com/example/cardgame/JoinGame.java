@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +29,7 @@ public class JoinGame extends AppCompatActivity {
     private GameRoom gameroomLocalJoinGame;
     private boolean playerAdded = false;
     private boolean roomExist;
+    private String displayName;
 
     // to send extra message
     public static final String EXTRA_MESSAGE = "com.example.cardgame.MESSAGE";
@@ -39,6 +41,10 @@ public class JoinGame extends AppCompatActivity {
 
         //database INIT
         database = FirebaseDatabase.getInstance();
+
+        // User
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        this.displayName = user.getDisplayName();
     }
 
     public void joinGameLobby(View view){
@@ -75,13 +81,24 @@ public class JoinGame extends AppCompatActivity {
                 // The room exists and we can go to the GameScreenJoined activity
                 if(setRoomExist(room)){
                     if(isPassWordCorrect(room,password)) {
-                        launchGameScreenJoined(roomname);
+                        if(!lobbyAlreadyHasSamePlayerName(room)){
+                            launchGameScreenJoined(roomname);}
+                        else{
+                            TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
+                            lobbyFoundText.setVisibility(View.INVISIBLE);
+                            TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
+                            passwordWrongText.setVisibility(View.INVISIBLE);
+                            TextView usernamenotunique = (TextView) findViewById(R.id.LobbyAlreadyContainsSameUser);
+                            usernamenotunique.setVisibility(View.VISIBLE);
+                        }
                     }
                     else{
                         TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
                         lobbyFoundText.setVisibility(View.INVISIBLE);
                         TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
                         passwordWrongText.setVisibility(View.VISIBLE);
+                        TextView usernamenotunique = (TextView) findViewById(R.id.LobbyAlreadyContainsSameUser);
+                        usernamenotunique.setVisibility(View.INVISIBLE);
                     }
                 }
                 else{
@@ -89,6 +106,8 @@ public class JoinGame extends AppCompatActivity {
                     lobbyFoundText.setVisibility(View.VISIBLE);
                     TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
                     passwordWrongText.setVisibility(View.INVISIBLE);
+                    TextView usernamenotunique = (TextView) findViewById(R.id.LobbyAlreadyContainsSameUser);
+                    usernamenotunique.setVisibility(View.INVISIBLE);
                 }
 
             }
@@ -124,22 +143,24 @@ public class JoinGame extends AppCompatActivity {
     }
 
 
-    public void goBack(View view){
-
-        // we remove the user from the online users database
-        //FirebaseUser user = mFirebaseauth.getCurrentUser();
-        //DatabaseReference userRef = database.getReference().child("OnlineUsers").child(user.getUid());
-        //userRef.removeValue();
-
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-    }
-
-
     public void launchGameScreenJoined(String roomName){
         //Intent intent = new Intent(this, MainActivity.class);
         Intent intent = new Intent(this,GameScreenJoined.class);
         intent.putExtra(EXTRA_MESSAGE, roomName);
+        startActivity(intent);
+    }
+
+    public boolean lobbyAlreadyHasSamePlayerName(GameRoom room){
+        if(room.playerIDs.contains(this.displayName))
+            return true;
+        else{
+            return false;
+        }
+    }
+
+    public void goBack(View view){
+
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 

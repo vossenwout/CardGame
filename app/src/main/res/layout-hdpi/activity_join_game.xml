@@ -94,4 +94,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lobbyFoundText" />
 
+    <TextView
+        android:id="@+id/LobbyAlreadyContainsSameUser"
+        android:layout_width="303dp"
+        android:layout_height="54dp"
+        android:text="Lobby already has a player with the same username. Go back to main menu and update username"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button7"
+        app:layout_constraintVertical_bias="0.252" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

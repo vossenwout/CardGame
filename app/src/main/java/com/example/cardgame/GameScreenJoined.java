@@ -97,8 +97,6 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
         ValueEventListener roomValueListener1 = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                System.out.println("been heere");
                 GameRoom room = dataSnapshot.getValue(GameRoom.class);
                 changeRoom(room);
 
@@ -672,6 +670,14 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
                         displayPlayedCards();
                         updateGameRoom();
                         this.lastClickedCard=null;
+                        break;
+                    case R.id.flipCard:
+                        this.gameroomLocal.playerHands.get(this.displayName).set(this.gameroomLocal.playerHands.get(this.displayName).indexOf(Integer.valueOf(this.lastClickedCard.getId())), Integer.valueOf(this.lastClickedCard.getId()) + 1000);
+                        this.lastClickedCard.setId(this.lastClickedCard.getId() + 1000);
+                        assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                        this.lastClickedCard = null;
+                        displayPlayedCards();
+                        updateGameRoom();
                         break;
                     case R.id.flipTopCard:
                         this.gameroomLocal.playedCards.set(this.gameroomLocal.playedCards.size() - 1, this.gameroomLocal.playedCards.get(this.gameroomLocal.playedCards.size() - 1) % 1000);
