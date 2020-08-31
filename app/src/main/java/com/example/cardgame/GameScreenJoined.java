@@ -274,7 +274,6 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
         ImageView kaart= findViewById(R.id.kaart);
         assignCards(card, kaart);
         kaart.setId(card);
-        //cardid += 1;
     }
 
 

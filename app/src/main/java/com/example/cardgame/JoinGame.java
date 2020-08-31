@@ -25,7 +25,7 @@ public class JoinGame extends AppCompatActivity {
     private ChildEventListener roomListener;
     private FirebaseDatabase database;
     private FirebaseAuth mFirebaseauth;
-    // de ref naar de gameroom waar we nu in zitten
+    // de ref naar de directory van deze gameroom waar we nu in zitten
     private DatabaseReference gameroomRefJoinGame;
     // de gameRoom van de game waar we nu in zitten
     private GameRoom gameroomLocalJoinGame;

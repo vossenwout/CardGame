@@ -57,22 +57,20 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         // DATABASE INIT
         database = FirebaseDatabase.getInstance();
 
-        // User
+        // get user to update dislplayname
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         this.displayName = user.getDisplayName();
 
         //DECK of cards INIT
         initDeck();
 
-        //previousPlayers
+        // players aready in the lobby before you joined
         previousPlayers = new ArrayList<String>();
 
         //Player hand init
         this.playerHand = new ArrayList<Integer>();
         // this one is used for init the room
         this.player1hand = new ArrayList<Integer>();
-
-
 
         //spinner with the playerID's
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -81,8 +79,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                //String itemValue = parent.getItemAtPosition(position).toString();
-                //Toast.makeText(parent.getContext(), itemValue, Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
@@ -116,7 +113,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         playedCards.add(99999);
 
         // cards that are still in the deck
-        //ArrayList<Integer> deck = new ArrayList<Integer>();
         GameRoom gameroom = new GameRoom(roomName, playerHands, playerIDs, playedCards, this.deck, this.roomPassword);
 
         DatabaseReference roomRef = database.getReference().child("GameRooms").child(roomName);
@@ -125,8 +121,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
 
         // set variables to remove in case the host disconnects
         gameroomRef.onDisconnect().setValue(null);
-        //DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet")
-        //this.gameroomRef = database.getReference().child("GameRooms").child(roomName);
 
         attachGameRoomValueListener(this.gameroomRef);
 
@@ -210,7 +204,7 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
     }
 
     /**
-     * Draws a card for every player in the game and updates it
+     * Draws a card for every player or a specific player in the game and updates it
      */
     public void drawCard(View view) {
         //Collections.shuffle(deck);
@@ -598,6 +592,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
         }
     }
 
+    /**
+     * Add cards to the deck
+     */
+
     public void initDeck() {
         deck = new ArrayList<>();
         // hearts
@@ -662,45 +660,10 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
     }
 
     /**
-     * Reader to read the set of all the rooms currently used and also create the room
-     */
-
-    public void removeLobby(final DatabaseReference totalRoomsRef) {
-        ValueEventListener postListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                ArrayList<String> roomNames = (ArrayList<String>) dataSnapshot.getValue();
-                removeLobbyFromList(roomNames, totalRoomsRef);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                // ...
-            }
-        };
-        totalRoomsRef.addListenerForSingleValueEvent(postListener);
-        //totalRoomsRef.addValueEventListener(postListener);
-    }
-
-
-    public void removeLobbyFromList(ArrayList<String> roomNames, DatabaseReference totalRoomsRef) {
-        roomNames.remove(this.gameroomLocalName);
-        totalRoomsRef.removeValue();
-        totalRoomsRef.setValue(roomNames);
-        // also removes the game from the active games
-        this.gameroomRef.removeValue();
-
-    }
-
-    /**
      * Close the lobby and go back to main screen
      */
 
     public void goBack(View view) {
-        //DatabaseReference totalRoomsRef = database.getReference().child("GameRooms").child("allRoomsSet");
-        //removeLobby(totalRoomsRef);
-
         this.gameroomRef.removeValue();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
@@ -831,7 +794,6 @@ public class GameScreenHost extends AppCompatActivity implements PopupMenu.OnMen
                 playstack4.setVisibility(View.INVISIBLE);
                 playstack5.setVisibility(View.INVISIBLE);
             }
-
 
         }
 
