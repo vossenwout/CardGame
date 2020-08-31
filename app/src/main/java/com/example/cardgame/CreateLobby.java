@@ -8,6 +8,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -21,11 +26,8 @@ import java.util.HashMap;
 
 public class CreateLobby extends AppCompatActivity {
 
-    private DatabaseReference myRef;
-    private ChildEventListener roomListener;
+
     private FirebaseDatabase database;
-    private FirebaseAuth mFirebaseauth;
-    private DatabaseReference gameroomRef;
     private static GameRoom gameroomLocal;
     private HashMap roomNames;
     // needs to be turned on and off so we dont keep creating rooms
@@ -35,6 +37,8 @@ public class CreateLobby extends AppCompatActivity {
     public static final String EXTRA_MESSAGE = "com.example.cardgame.MESSAGE";
     public static final String PASSWORD = "com.example.cardgame.PASSWORD";
 
+    private AdView mAdView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,10 +46,23 @@ public class CreateLobby extends AppCompatActivity {
 
         // DATABASE INIT
         database = FirebaseDatabase.getInstance();
+        // Init banner adds
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+        setTitle("Host lobby");
+
     }
 
     /**
-     * Creates the lobby and afterwards joins it
+     * Creates the lobby and afterwards joins it (if lobby name not already taken etc
      */
 
     public void createLobby(View view){

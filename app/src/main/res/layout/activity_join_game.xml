@@ -11,14 +11,13 @@
         android:id="@+id/textView"
         android:layout_width="291dp"
         android:layout_height="65dp"
-        android:layout_marginTop="16dp"
         android:text="Fill in the lobby name and password to join a game hosted by another player."
         android:textAllCaps="false"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.517"
+        app:layout_constraintHorizontal_bias="0.551"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/adView2" />
 
     <EditText
         android:id="@+id/editTextLobbyName"
@@ -46,17 +45,16 @@
 
     <TextView
         android:id="@+id/lobbyFoundText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="Lobby does not exist"
-        android:visibility="invisible"
+        android:layout_width="279dp"
+        android:layout_height="53dp"
+        android:inputType="textMultiLine"
+        android:text="Lobby already has player with  same username. Go  back to  main menu and update your username."
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/backButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.537"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button7" />
+        app:layout_constraintTop_toBottomOf="@+id/button7"
+        app:layout_constraintVertical_bias="0.0" />
 
     <EditText
         android:id="@+id/passwordText"
@@ -83,26 +81,18 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <TextView
-        android:id="@+id/passwordwrong"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView2"
+        android:layout_width="318dp"
+        android:layout_height="43dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="4dp"
-        android:text="password is wrong"
-        android:visibility="invisible"
+        app:adSize="BANNER"
+        app:adUnitId="ca-app-pub-3940256099942544/6300978111"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lobbyFoundText" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/LobbyAlreadyContainsSameUser"
-        android:layout_width="304dp"
-        android:layout_height="36dp"
-        android:layout_marginBottom="36dp"
-        android:text="Lobby already has a player with the same username. Go back to main menu and update username."
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/backButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

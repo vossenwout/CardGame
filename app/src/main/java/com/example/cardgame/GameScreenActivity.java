@@ -59,17 +59,14 @@ public class GameScreenActivity extends AppCompatActivity implements PopupMenu.O
         // this one is used for init the room
         this.player1hand = new ArrayList<Integer>();
 
-
-
-        //spinner with the playerID's
+        //spinner with the playerID's to decide who to draw for
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                //String itemValue = parent.getItemAtPosition(position).toString();
-                //Toast.makeText(parent.getContext(), itemValue, Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
@@ -79,10 +76,8 @@ public class GameScreenActivity extends AppCompatActivity implements PopupMenu.O
         });
 
         gameroomLocalName = "private lobby";
-
         // change the top bar to this lobby name
-        setTitle("Lobby Name: " +gameroomLocalName);
-
+        setTitle(gameroomLocalName);
 
         // "playerName" -> cards in current hand
         HashMap<String, ArrayList<Integer>> playerHands = new HashMap<String, ArrayList<Integer>>();
@@ -116,14 +111,6 @@ public class GameScreenActivity extends AppCompatActivity implements PopupMenu.O
 
     }
 
-
-    /**
-     * Used to change the gameroomLocal variable with the up to date game room
-     */
-
-    public void changeRoom(GameRoom room) {
-        this.gameroomLocal = room;
-    }
 
     /**
      * Draws a card for every player in the game and updates it
@@ -512,8 +499,6 @@ public class GameScreenActivity extends AppCompatActivity implements PopupMenu.O
     }
 
 
-
-
     /**
      * Close the lobby and go back to main screen
      */
@@ -779,6 +764,15 @@ public class GameScreenActivity extends AppCompatActivity implements PopupMenu.O
                     this.lastClickedCard =null;
                     break;
                 case R.id.GiveTomenuItem:
+                    break;
+
+                case R.id.flipCard:
+                    this.gameroomLocal.playerHands.get(this.displayName).set(this.gameroomLocal.playerHands.get(this.displayName).indexOf(Integer.valueOf(this.lastClickedCard.getId())), Integer.valueOf(this.lastClickedCard.getId()) + 1000);
+                    this.lastClickedCard.setId(this.lastClickedCard.getId() + 1000);
+                    assignCards(this.lastClickedCard.getId(), (ImageView) this.lastClickedCard);
+                    this.lastClickedCard = null;
+                    displayPlayedCards();
+                    updateGameRoomList();
                     break;
                 // remove the card from play, dont put it back in the decck
                 case R.id.discardMenuItem:

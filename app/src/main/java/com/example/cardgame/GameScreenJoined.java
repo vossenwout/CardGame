@@ -54,7 +54,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
         //playerhand INIT
         this.playerHand = new ArrayList<Integer>();
 
-        // User
+        // get displayname of usere
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         this.displayName = user.getDisplayName();
 
@@ -65,13 +65,9 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
         // change the top bar to this lobby name
         setTitle("Lobby Name: " +gameroomLocalName);
 
-        // for on forcefull disconnect to remove own values
+        // for on forcefull disconnect to remove own playerid from lobby
         DatabaseReference roomRefPlayerHands = database.getReference().child("GameRooms").child(this.gameroomLocalName).child("playerHands").child(this.displayName);
-
-        // TODO maak het zodat dezelfde persoon nog kan terugjoinen of pas aan in host da de playyerIDS dan ook uppgedate worden
-        //DatabaseReference playerIDs = database.getReference().child("GameRooms").child(this.gameroomLocalName).child("playerIDs").child(this.displayName).;
         roomRefPlayerHands.onDisconnect().removeValue();
-        //playerIDs.onDisconnect().removeValue();
 
         this.gameroomRef = database.getReference().child("GameRooms").child(this.gameroomLocalName);
         joinGameLobby();
@@ -87,10 +83,8 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
 
     /**
-     * Attaches a listener to the room that is located on the given roomRef
-     * ASSYNCHRONE METHODE DUS WE MOETEN WACHTEN OP onDataChange klaar is anders krijgen we null
-     * refference als we al eerder de localGame proberen te gebruiken die pas in changeRoom geset
-     * wordt
+     * Lisens for updates to the game room directory in the database and makes updates to the game
+     * according to that.
      */
 
     public void attachGameRoomValueListener(DatabaseReference roomRef){
@@ -117,6 +111,9 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
     }
 
+    /**
+     * Update the local variable
+     */
 
     public void changeRoom(GameRoom room){
         this.gameroomLocal = room;
@@ -124,7 +121,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
 
     /**
-     * Displays the top card of the middle of the table, (the play stack)
+     * Displays the top 5 cards of the middle of the table, (the play stack)
      */
 
     public void displayPlayedCards() {
@@ -225,7 +222,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
 
     /**
-     * Checks which new cards are added to the player's hand and updates the visuals acordingly
+     * Checks which new cards are added to the player's hand and updates the visuals of the playershand
      */
 
     public void updatePlayerHand(){
@@ -282,8 +279,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
 
     /**
-     * Plays the selected card from the player's hand and moves it to the played stack
-     * THis is called when you click on a card
+     * Plays the selected card from the player's hand and moves it to the played stack.
      */
 
     @SuppressLint("ResourceType")
@@ -338,15 +334,27 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
 
     }
 
+    /**
+     * Remove player from the game.
+     */
+
     public void removePlayer(){
         this.gameroomLocal.playerIDs.remove(this.displayName);
         this.gameroomLocal.playerHands.remove(this.displayName);
         updateGameRoom();
     }
 
+    /**
+     * Updates the local gameroom with new updates from the gameroom from the database
+     */
+
     public void updateGameRoom(){
         this.gameroomRef.setValue(this.gameroomLocal);
     }
+
+    /**
+     * If we leave the gamelobby
+     */
 
     public void goBack(View view){
 
@@ -627,7 +635,7 @@ public class GameScreenJoined extends AppCompatActivity implements PopupMenu.OnM
     }
 
     /**
-     * Need to implement this for the popupmenu on the card
+     * Popup menu with different actions for what to do with the card that gets clicked on.
      */
 
     @SuppressLint("ResourceType")

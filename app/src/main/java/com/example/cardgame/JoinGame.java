@@ -9,6 +9,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -31,6 +33,9 @@ public class JoinGame extends AppCompatActivity {
     private boolean roomExist;
     private String displayName;
 
+
+    private AdView mAdView;
+
     // to send extra message
     public static final String EXTRA_MESSAGE = "com.example.cardgame.MESSAGE";
 
@@ -45,6 +50,12 @@ public class JoinGame extends AppCompatActivity {
         // User
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         this.displayName = user.getDisplayName();
+
+        mAdView = findViewById(R.id.adView2);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+        setTitle("Join lobby");
     }
 
     public void joinGameLobby(View view){
@@ -85,29 +96,20 @@ public class JoinGame extends AppCompatActivity {
                             launchGameScreenJoined(roomname);}
                         else{
                             TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
-                            lobbyFoundText.setVisibility(View.INVISIBLE);
-                            TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
-                            passwordWrongText.setVisibility(View.INVISIBLE);
-                            TextView usernamenotunique = (TextView) findViewById(R.id.LobbyAlreadyContainsSameUser);
-                            usernamenotunique.setVisibility(View.VISIBLE);
+                            lobbyFoundText.setText("Lobby already has a player with the same username. Go back to main menu and update username");
+                            lobbyFoundText.setVisibility(View.VISIBLE);
                         }
                     }
                     else{
                         TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
-                        lobbyFoundText.setVisibility(View.INVISIBLE);
-                        TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
-                        passwordWrongText.setVisibility(View.VISIBLE);
-                        TextView usernamenotunique = (TextView) findViewById(R.id.LobbyAlreadyContainsSameUser);
-                        usernamenotunique.setVisibility(View.INVISIBLE);
+                        lobbyFoundText.setText("Password is wrong");
+                        lobbyFoundText.setVisibility(View.VISIBLE);
                     }
                 }
                 else{
                     TextView lobbyFoundText = (TextView) findViewById(R.id.lobbyFoundText);
+                    lobbyFoundText.setText("Lobby does not exist");
                     lobbyFoundText.setVisibility(View.VISIBLE);
-                    TextView passwordWrongText = (TextView) findViewById(R.id.passwordwrong);
-                    passwordWrongText.setVisibility(View.INVISIBLE);
-                    TextView usernamenotunique = (TextView) findViewById(R.id.LobbyAlreadyContainsSameUser);
-                    usernamenotunique.setVisibility(View.INVISIBLE);
                 }
 
             }
